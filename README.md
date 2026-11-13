@@ -14,7 +14,8 @@ and suite availability at `/api/availability`. Bookings are stored in MySQL.
 4. Environment variables > Import .env: use `.env.example`, filled in with the
    database details from step 1 and the WhatsApp values.
 5. Deploy, then open `https://dalsuitsbnb.com/api/whatsapp?health`. It should show
-   `"storage":"mysql"` and `"database":"ok"`. Tables are created automatically.
+   `"storage":"mysql"` and `"database":"ok"`. Tables are created automatically on first
+   start; to create them yourself instead, import `database/schema.sql` in phpMyAdmin.
 6. hPanel > Emails: create the mailbox `bookings@dalsuitsbnb.com` (the website's
    "Send by email" button uses it).
 7. Point the WhatsApp webhook to `https://dalsuitsbnb.com/api/whatsapp` with the
