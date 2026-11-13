@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAL Suits BnB</title>
+<meta name="description" content="DAL Suits BnB: modern, stylish suites with fast Wi-Fi and Smart TV (Netflix, YouTube) at Nyarach Kobura, Rongo Town, Migori County. Block A suites 110 and 123, Block B suites 115 and 117. Book online.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: dark "night arrival" hero where the four brass door plates are the identity; light sage body sections below, one column of content at ~1120px. */
+:root{
+  --ink:#10282b;        /* deep teal-ink: hero, headings, footer */
+  --ink-2:#1b3a3e;
+  --paper:#eef1ec;      /* sage-white page */
+  --surface:#ffffff;
+  --muted:#5a6a68;
+  --line:#d3dad4;
+  --brass:#c9972f;      /* door-plate brass, the one accent */
+  --brass-hi:#e7c46a;
+  --ok:#2f7a4f;
+  --err:#a8361f;
+  --display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius:14px;
+  --max:1120px;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.6}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);line-height:1.05;text-wrap:balance;margin:0}
+h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-.02em;font-stretch:85%}
+h3{font-size:1.35rem;font-weight:700}
+p{margin:0}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 clamp(16px,4vw,32px)}
+.section{padding:clamp(56px,8vw,96px) 0}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.lede{color:var(--muted);max-width:62ch;margin-top:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 1rem var(--body);padding:13px 22px;border-radius:999px;border:2px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s ease, background .15s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-brass{background:var(--brass);color:var(--ink)}
+.btn-brass:hover{background:var(--brass-hi)}
+.btn-ghost{border-color:currentColor;background:transparent}
+.btn-ink{background:var(--ink);color:#fff}
+.btn-sm{padding:9px 16px;font-size:.92rem}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:40;background:rgba(16,40,43,.94);backdrop-filter:blur(8px);color:#fff}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.2rem;letter-spacing:-.01em}
+.brand-mark{width:30px;height:30px;border-radius:7px;background:linear-gradient(145deg,var(--brass-hi),var(--brass));color:var(--ink);display:grid;place-items:center;font-size:.85rem;font-stretch:75%}
+.nav-links{display:flex;gap:22px;align-items:center}
+.nav-links a{text-decoration:none;font-weight:500;font-size:.95rem;opacity:.85}
+.nav-links a:hover{opacity:1}
+.menu-btn{display:none;background:none;border:0;color:#fff;font:600 1rem var(--body);cursor:pointer;padding:8px}
+@media (max-width:820px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;background:var(--ink);padding:8px 16px 16px}
+  .nav-links.open{display:flex}
+  .nav-links a{padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .nav-links .btn{margin-top:10px}
+  .menu-btn{display:block}
+}
+
+/* HERO */
+.hero{background:radial-gradient(1200px 500px at 85% -10%, #24525a 0%, transparent 60%), var(--ink);color:#fff;padding:clamp(48px,8vw,96px) 0 clamp(56px,8vw,88px);overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(32px,5vw,64px);align-items:center}
+.hero h1{font-size:clamp(2.6rem,5.6vw,4.6rem);font-weight:800;letter-spacing:-.03em;font-stretch:80%}
+.hero h1 em{font-style:normal;color:var(--brass-hi)}
+.hero p.sub{color:#c9d6d3;margin-top:18px;max-width:46ch;font-size:1.12rem}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.hl{list-style:none;margin:20px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.hl li{font-size:.85rem;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid rgba(231,196,106,.45);color:var(--brass-hi);background:rgba(231,196,106,.08)}
+.hero .addr{margin-top:26px;font-size:.92rem;color:#9fb5b1;display:flex;gap:8px;align-items:center}
+.blocks{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.block-col{display:grid;gap:14px;align-content:start}
+.block-col:nth-child(2){margin-top:44px}
+.block-label{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:#9fb5b1;font-weight:700}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}.block-col:nth-child(2){margin-top:0}}
+
+/* DOOR PLATE: the signature element */
+.plate{position:relative;display:block;text-decoration:none;color:var(--ink);background:linear-gradient(150deg,#f0d283 0%,var(--brass) 48%,#a97a1f 70%,#dcb257 100%);border-radius:12px;padding:22px 22px 18px;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 -2px 0 rgba(0,0,0,.18) inset,0 18px 30px -16px rgba(0,0,0,.6);transform-origin:left center;transition:transform .25s ease, box-shadow .25s ease}
+.plate:hover{transform:perspective(700px) rotateY(-8deg) translateX(2px);box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 -2px 0 rgba(0,0,0,.18) inset,0 26px 36px -16px rgba(0,0,0,.7)}
+.plate::before,.plate::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff6d8,#8a6417 70%);top:10px;left:10px;box-shadow:0 1px 1px rgba(0,0,0,.35)}
+.plate::after{left:auto;right:10px}
+.plate .num{display:block;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(3.4rem,8vw,5.4rem);line-height:.9;letter-spacing:-.03em;text-shadow:0 1px 0 rgba(255,255,255,.35),0 -1px 0 rgba(0,0,0,.25);font-variant-numeric:tabular-nums}
+.plate .meta{display:flex;justify-content:space-between;margin-top:8px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.78}
+@media (max-width:480px){.plate .meta span:last-child{display:none}.plate{padding:20px 16px 14px}}
+@keyframes swingIn{from{transform:perspective(700px) rotateY(-28deg)}to{transform:perspective(700px) rotateY(0)}}
+.hero .plate{animation:swingIn .9s cubic-bezier(.2,.8,.2,1) both}
+.hero .plate:nth-child(3){animation-delay:.12s}
+.block-col:nth-child(2) .plate:nth-child(2){animation-delay:.2s}
+.block-col:nth-child(2) .plate:nth-child(3){animation-delay:.32s}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(28px,5vw,64px);align-items:start}
+.offer{display:grid;gap:0;border-top:1px solid var(--line)}
+.offer-item{display:grid;grid-template-columns:56px 1fr;gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.offer-item .ico{width:44px;height:44px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink)}
+.offer-item p{color:var(--muted);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.stat b{display:block;font-family:var(--display);font-size:2rem;font-weight:800;font-stretch:80%;line-height:1}
+.stat span{font-size:.85rem;color:var(--muted)}
+@media (max-width:820px){.about-grid{grid-template-columns:1fr}}
+
+/* SUITES */
+.suites-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.block-group{margin-top:40px}
+.block-group > h3{font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px}
+.block-group > h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.suite-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+@media (max-width:820px){.suite-row{grid-template-columns:1fr}}
+.suite{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.suite-photo{position:relative;aspect-ratio:16/10;background:#dfe5df;cursor:pointer;border:0;padding:0;width:100%}
+.suite-photo img{width:100%;height:100%;object-fit:cover}
+.suite-photo .count{position:absolute;right:12px;bottom:12px;background:rgba(16,40,43,.85);color:#fff;font-size:.8rem;font-weight:600;padding:5px 10px;border-radius:999px}
+.suite-photo .mini-plate{position:absolute;left:14px;top:14px;padding:6px 12px 5px;border-radius:8px}
+.suite-photo .mini-plate .num{font-size:1.9rem}
+.suite-photo .mini-plate::before,.suite-photo .mini-plate::after{display:none}
+.suite-body{padding:20px 22px 22px;display:grid;gap:12px;align-content:start}
+.suite-body .type{font-size:.85rem;color:var(--muted);font-weight:600}
+.suite-body p.desc{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--paper);border:1px solid var(--line)}
+.suite-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
+.rate{font-weight:700}
+.rate small{font-weight:500;color:var(--muted)}
+.suite-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* GALLERY */
+.gallery-sec{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+.filter{font:600 .9rem var(--body);padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.filter[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:180px;grid-auto-flow:dense;gap:12px;margin-top:22px}
+.tile{position:relative;border:0;padding:0;border-radius:10px;overflow:hidden;cursor:zoom-in;background:#dfe5df}
+.tile img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+.tile:hover img{transform:scale(1.04)}
+.tile.big{grid-column:span 2;grid-row:span 2}
+.tile figcaption{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;background:linear-gradient(transparent,rgba(10,26,28,.82));color:#fff;font-size:.85rem;font-weight:600;text-align:left}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:150px}}
+@media (max-width:420px){.grid{grid-template-columns:1fr;grid-auto-rows:200px}.tile.big{grid-column:span 1;grid-row:span 1}}
+.note{font-size:.85rem;color:var(--muted);margin-top:14px}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;z-index:100;background:rgba(8,20,22,.94);display:none;align-items:center;justify-content:center;padding:56px 16px}
+.lb.open{display:flex}
+.lb figure{margin:0;max-width:min(1100px,100%);display:grid;gap:12px}
+.lb img{max-height:76vh;width:auto;margin:0 auto;border-radius:8px}
+.lb figcaption{color:#dbe5e2;text-align:center;font-size:.95rem}
+.lb-btn{position:absolute;background:rgba(255,255,255,.1);color:#fff;border:0;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:1.4rem;display:grid;place-items:center}
+.lb-btn:hover{background:rgba(255,255,255,.2)}
+.lb-prev{left:16px;top:50%;transform:translateY(-50%)}
+.lb-next{right:16px;top:50%;transform:translateY(-50%)}
+.lb-close{right:16px;top:12px}
+
+/* LOCATION */
+.loc-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;margin-top:32px;align-items:stretch}
+@media (max-width:860px){.loc-grid{grid-template-columns:1fr}}
+.map{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);min-height:380px;background:#dfe6e0}
+.map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.map canvas{position:absolute;inset:0;width:100%;height:100%}
+.map-fallback{position:absolute;left:16px;right:16px;bottom:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.92rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:grid;gap:16px;align-content:start}
+.card dl{margin:0;display:grid;gap:14px}
+.card dt{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card dd{margin:2px 0 0;font-weight:600}
+.card .row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* BOOKING */
+.book-sec{background:var(--ink);color:#fff}
+.book-sec .kicker{color:#9fb5b1}
+.book-sec .lede{color:#c9d6d3}
+.book-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;margin-top:32px;align-items:start}
+@media (max-width:900px){.book-grid{grid-template-columns:1fr}}
+form.book{background:var(--surface);color:var(--ink);border-radius:var(--radius);padding:clamp(20px,3vw,32px);display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:grid;gap:6px}
+.field.full{grid-column:1/-1}
+@media (max-width:560px){form.book{grid-template-columns:1fr}}
+label{font-size:.88rem;font-weight:600}
+input,select,textarea{font:500 1rem var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:1px;background:#fff}
+textarea{min-height:88px;resize:vertical}
+.err{color:var(--err);font-size:.85rem;min-height:0}
+.suite-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media (max-width:560px){.suite-pick{grid-template-columns:repeat(3,1fr)}}
+.suite-pick{position:relative}
+.suite-pick input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:0;top:0}
+.suite-pick label{display:grid;place-items:center;text-align:center;gap:0;padding:10px 4px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--paper);font-weight:600;line-height:1.15}
+.suite-pick label b{font-family:var(--display);font-stretch:75%;font-size:1.6rem;font-weight:800}
+.suite-pick label small{font-size:.72rem;color:var(--muted);font-weight:600}
+.suite-pick input:checked + label{background:linear-gradient(150deg,#f0d283,var(--brass));border-color:var(--brass)}
+.suite-pick input:focus-visible + label{outline:3px solid var(--brass);outline-offset:2px}
+.summary{background:var(--ink-2);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:24px;display:grid;gap:14px;position:sticky;top:84px}
+.summary h3{font-size:1.2rem}
+.sum-row{display:flex;justify-content:space-between;gap:12px;font-size:.95rem;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:10px;font-variant-numeric:tabular-nums}
+.sum-row span:first-child{color:#9fb5b1}
+.sum-total{font-family:var(--display);font-size:1.6rem;font-weight:800;font-stretch:85%}
+.confirm{display:none;grid-column:1/-1;background:#eaf4ee;border:1px solid #bcd9c6;border-radius:12px;padding:18px;gap:12px}
+.confirm.show{display:grid}
+.confirm .ref{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:.02em}
+.confirm .row{display:flex;gap:8px;flex-wrap:wrap}
+.small{font-size:.85rem;color:var(--muted)}
+
+/* CONTACT + FOOTER */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:32px}
+.contact{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:grid;gap:6px;text-decoration:none}
+.contact:hover{border-color:var(--brass)}
+.contact .t{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.contact .v{font-weight:700;font-size:1.05rem;word-break:break-word}
+footer{background:var(--ink);color:#9fb5b1;padding:32px 0;font-size:.9rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:#fff;text-decoration:none}
+.wa-float{position:fixed;right:18px;bottom:18px;z-index:50;width:56px;height:56px;border-radius:50%;background:#25d366;display:grid;place-items:center;box-shadow:0 10px 24px -8px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="brand-mark">DAL</span><span>DAL Suits BnB</span></a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
+    <div class="nav-links" id="navLinks">
+      <a href="#about">About</a>
+      <a href="#suites">Suites</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#location">Location</a>
+      <a href="#contact">Contact</a>
+      <a class="btn btn-brass btn-sm" href="#book">Book a stay</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1>Four suites. One quiet address in <em>Rongo</em>.</h1>
+      <p class="sub">Modern, stylish suites at Nyarach Kobura: clean, spacious and cozy. Perfect for couples, families and anyone who needs a secluded place to rest.</p>
+      <ul class="hl" aria-label="Highlights"><li>Smart TV · Netflix · YouTube</li><li>Fast Wi-Fi</li><li>Modern &amp; stylish</li><li>Clean, spacious &amp; cozy</li><li>Quiet &amp; secluded</li></ul>
+      <div class="ctas">
+        <a class="btn btn-brass" href="#book">Check dates &amp; book</a>
+        <a class="btn btn-ghost" href="#suites">See the suites</a>
+      </div>
+      <p class="addr"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="heroAddr">Nyarach Kobura, Rongo Town, Migori County</span></p>
+    </div>
+    <div class="blocks" id="heroPlates" aria-label="Our suites by block"></div>
+  </div>
+</header>
+
+<main>
+<section class="section" id="about">
+  <div class="wrap about-grid">
+    <div>
+      <p class="kicker">About us</p>
+      <h2>A home base in Rongo, run by people who live here.</h2>
+      <p class="lede">DAL Suits BnB is a small accommodation business at Nyarach Kobura in Rongo Town. We run four private suites across two blocks and look after every guest directly: we answer the phone, hand over the keys and stay reachable for the whole stay.</p>
+      <div class="stats">
+        <div class="stat"><b>4</b><span>private suites</span></div>
+        <div class="stat"><b>2</b><span>blocks, A &amp; B</span></div>
+        <div class="stat"><b>24/7</b><span>host on call</span></div>
+      </div>
+    </div>
+    <div class="offer">
+      <div class="offer-item">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 18v-6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v6M3 18h18M3 18v2M21 18v2M6 9V6h12v3"/></svg></div>
+        <div><h3>For couples, families &amp; rest</h3><p>A getaway for two, a family visit or a quiet break to recharge. Book a night, a weekend or longer.</p></div>
+      </div>
+      <div class="offer-item">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <div><h3>Weekly &amp; monthly stays</h3><p>Longer assignments, field work or relocation. Ask us about a rate for stays of a week or more.</p></div>
+      </div>
+      <div class="offer-item">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div><h3>Clean, spacious and cozy</h3><p>Modern, stylish suites cleaned before every check-in, in a quiet, secluded compound where you can truly rest.</p></div>
+      </div>
+      <div class="offer-item">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
+        <div><h3>Fast Wi-Fi &amp; Smart TV</h3><p>Stay connected and unwind with fast Wi-Fi and a Smart TV with Netflix and YouTube in every suite.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="suites" style="padding-top:0">
+  <div class="wrap">
+    <div class="suites-head">
+      <div>
+        <p class="kicker">Our suites</p>
+        <h2>Choose your door.</h2>
+        <p class="lede">Two blocks, four suites. Pick one by number, or tell us your dates and we will offer whichever is free.</p>
+      </div>
+      <a class="btn btn-ink" href="#book">Book a suite</a>
+    </div>
+    <div id="suiteGroups"></div>
+  </div>
+</section>
+
+<section class="section gallery-sec" id="gallery">
+  <div class="wrap">
+    <p class="kicker">Gallery</p>
+    <h2>Look inside before you arrive.</h2>
+    <div class="filters" id="filters" role="group" aria-label="Filter photos"></div>
+    <div class="grid" id="grid"></div>
+    <p class="note" id="galleryNote"></p>
+  </div>
+</section>
+
+<section class="section" id="location">
+  <div class="wrap">
+    <p class="kicker">Location</p>
+    <h2>Find us at Nyarach Kobura, Rongo.</h2>
+    <div class="loc-grid">
+      <div class="map" id="map"></div>
+      <div class="card">
+        <dl>
+          <div><dt>Address</dt><dd id="locAddr"></dd></div>
+          <div><dt>Getting here</dt><dd id="locDirections" style="font-weight:500"></dd></div>
+          <div><dt>Check-in / check-out</dt><dd id="locTimes"></dd></div>
+        </dl>
+        <div class="row">
+          <a class="btn btn-ink btn-sm" id="dirBtn" href="#" target="_blank" rel="noopener">Get directions</a>
+          <a class="btn btn-ghost btn-sm" id="callBtn2" href="#">Call for directions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section book-sec" id="book">
+  <div class="wrap">
+    <p class="kicker">Book a stay</p>
+    <h2>Send a booking request.</h2>
+    <p class="lede">Fill in your dates and pick a suite. We confirm availability and payment details with you on WhatsApp or by phone, usually within the hour.</p>
+    <div class="book-grid">
+      <form class="book" id="bookForm" novalidate>
+        <div class="field full">
+          <span id="suiteLbl" style="font-size:.88rem;font-weight:600">Suite</span>
+          <div class="suite-pick" id="suitePick" role="radiogroup" aria-labelledby="suiteLbl"></div>
+        </div>
+        <div class="field"><label for="checkin">Check-in</label><input type="date" id="checkin" required><span class="err" id="e-checkin"></span></div>
+        <div class="field"><label for="checkout">Check-out</label><input type="date" id="checkout" required><span class="err" id="e-checkout"></span></div>
+        <div class="field"><label for="guests">Guests</label>
+          <select id="guests"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+        <div class="field"><label for="arrival">Expected arrival</label>
+          <select id="arrival"><option>Morning</option><option selected>Afternoon</option><option>Evening</option><option>Late night</option></select></div>
+        <div class="field"><label for="name">Full name</label><input id="name" autocomplete="name" required><span class="err" id="e-name"></span></div>
+        <div class="field"><label for="phone">Phone (WhatsApp)</label><input id="phone" type="tel" autocomplete="tel" placeholder="07XX XXX XXX" required><span class="err" id="e-phone"></span></div>
+        <div class="field full"><label for="email">Email (optional)</label><input id="email" type="email" autocomplete="email"><span class="err" id="e-email"></span></div>
+        <div class="field full"><label for="notes">Anything we should know?</label><textarea id="notes" placeholder="e.g. travelling for a graduation, need early check-in, staying for work"></textarea></div>
+        <div class="field full"><button class="btn btn-brass" type="submit" style="width:100%">Prepare my booking request</button></div>
+        <div class="confirm" id="confirm" aria-live="polite">
+          <div><span class="small">Booking request</span><div class="ref" id="ref"></div></div>
+          <p>Your request is ready. Send it to us with one tap below; your booking is confirmed once we reply.</p>
+          <div class="row">
+            <a class="btn btn-ink btn-sm" id="waSend" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+            <a class="btn btn-ghost btn-sm" id="mailSend" href="#">Send by email</a>
+            <button class="btn btn-ghost btn-sm" type="button" id="copyBtn">Copy details</button>
+          </div>
+          <p class="small" id="confirmContacts"></p>
+        </div>
+      </form>
+      <aside class="summary" aria-label="Booking summary">
+        <h3>Your stay</h3>
+        <div class="sum-row"><span>Suite</span><span id="sSuite">Any available</span></div>
+        <div class="sum-row"><span>Dates</span><span id="sDates">Choose dates</span></div>
+        <div class="sum-row"><span>Nights</span><span id="sNights">–</span></div>
+        <div class="sum-row"><span>Guests</span><span id="sGuests">2</span></div>
+        <div><span class="small" style="color:#9fb5b1">Estimated total</span><div class="sum-total" id="sTotal">–</div></div>
+        <p class="small" style="color:#9fb5b1" id="sNote"></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="wrap">
+    <p class="kicker">Contact</p>
+    <h2>Talk to us directly.</h2>
+    <p class="lede">Questions about rates, availability or directions? Reach the host on any of these.</p>
+    <div class="contact-grid" id="contactGrid"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr"></span> DAL Suits BnB · Nyarach Kobura, Rongo · <a href="tel:+254711943866">0711 943 866</a></span>
+    <span><a href="#book">Book a stay</a> · <a href="#location">Find us</a></span>
+  </div>
+</footer>
+
+<a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+</a>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb-btn lb-close" id="lbClose" aria-label="Close">✕</button>
+  <button class="lb-btn lb-prev" id="lbPrev" aria-label="Previous photo">‹</button>
+  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="lb-btn lb-next" id="lbNext" aria-label="Next photo">›</button>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT YOUR BUSINESS DETAILS HERE
+   - phone / whatsapp / email: your real contacts
+   - map.lat / map.lng: exact pin (right-click your gate in Google Maps
+     to copy the numbers). Leave null to search by name.
+   - rate: nightly price in KES, or null to show "Rate on request"
+   - photos: put image files next to this page (e.g. images/a110-1.jpg)
+     and list them; suites without photos show drawn sample images.
+   ===================================================================== */
+const CONFIG = {
+  name: "DAL Suits BnB",
+  address: "Nyarach Kobura, Rongo Town, Migori County, Kenya",
+  phones: ["0711 943 866", "0143 247 740", "0182 744 059"],   // first one is the main line
+  whatsapp: "254711943866",           // digits only, country code first
+  email: "bookings@dalsuitsbnb.com",  // create this mailbox in hPanel > Emails; null hides email options
+  hours: "Calls & WhatsApp: 7:00 am – 10:00 pm daily",
+  checkIn: "2:00 pm", checkOut: "10:00 am",
+  directions: "At Nyarach Kobura, off the main road through Rongo Town. Call or WhatsApp when you reach Rongo and we will guide you to the gate.",
+  map: { query: "DAL Suits BnB, Nyarach Kobura, Rongo, Kenya", lat: -0.7351897, lng: 34.5943577,
+         placeUrl: "https://www.google.com/maps/place/DAL+Suits+BnB/@-0.7351897,34.5943577,17z/data=!3m1!4b1!4m6!3m5!1s0x182b35002f1eeec9:0xdedea7058f7fc814!8m2!3d-0.7351897!4d34.5943577" },
+  currency: "KES",
+  suites: [
+    { id:"110", block:"A", type:"Furnished suite", sleeps:2, rate:null,
+      desc:"Modern, stylish ground-floor suite with a queen bed, cozy sitting area and private bathroom. Perfect for couples.",
+      features:["Queen bed","Private bathroom","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
+      photos:[] },
+    { id:"123", block:"A", type:"Furnished suite", sleeps:2, rate:null,
+      desc:"Clean, spacious upper-floor suite with natural light and a work desk. Quiet and secluded, ideal for resting.",
+      features:["Queen bed","Work desk","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
+      photos:[] },
+    { id:"115", block:"B", type:"Furnished suite", sleeps:3, rate:null,
+      desc:"Spacious, cozy suite with a lounge and kitchenette. Perfect for families.",
+      features:["Kitchenette","Lounge","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
+      photos:[] },
+    { id:"117", block:"B", type:"Furnished suite", sleeps:3, rate:null,
+      desc:"Secluded corner suite with a kitchenette, made for rest and longer stays.",
+      features:["Kitchenette","Corner unit","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
+      photos:[] }
+  ],
+  blockPhotos: { A: [], B: [] }        // exterior / compound photos per block
+};
+/* ===================================================================== */
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => CONFIG.currency + " " + Number(n).toLocaleString("en-KE");
+CONFIG.phone = CONFIG.phones[0];
+const toIntl = n => "+254" + n.replace(/\s/g,"").replace(/^0/,"");
+const telOf = n => "tel:" + toIntl(n);
+const telHref = telOf(CONFIG.phone);
+const waDisplay = "0" + CONFIG.whatsapp.replace(/^254/,"").replace(/(\d{3})(\d{3})(\d{3})/,"$1 $2 $3");
+const waHref = (text) => "https://wa.me/" + CONFIG.whatsapp + (text ? "?text=" + encodeURIComponent(text) : "");
+const mapPoint = CONFIG.map.lat != null ? CONFIG.map.lat + "," + CONFIG.map.lng : CONFIG.map.query;
+const mapsLink = CONFIG.map.placeUrl || ("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(mapPoint));
+const dirLink = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(mapPoint);
+
+/* ---------- Sample images drawn on canvas (used until real photos are added) ---------- */
+const PALETTES = {
+  "110": {wall:"#e9e2d4", accent:"#2f6b6f", floor:"#a77b52", fabric:"#f4f1ea"},
+  "123": {wall:"#dfe7e3", accent:"#b5702c", floor:"#8d6748", fabric:"#faf7f0"},
+  "115": {wall:"#ece6dc", accent:"#5a4a8a", floor:"#9a7550", fabric:"#f7f4ee"},
+  "117": {wall:"#e3e8ea", accent:"#3c7a4a", floor:"#7f5f44", fabric:"#f6f3ec"},
+  "A":   {wall:"#d9c7a8", accent:"#2f6b6f", floor:"#8a5a3c", fabric:"#fff"},
+  "B":   {wall:"#cfd8cf", accent:"#b5702c", floor:"#8a5a3c", fabric:"#fff"}
+};
+function drawScene(kind, key){
+  const W=960, H=640, c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d"), p=PALETTES[key];
+  const rect=(a,b,w,h,f)=>{x.fillStyle=f;x.fillRect(a,b,w,h)};
+  const rr=(a,b,w,h,r,f)=>{x.fillStyle=f;x.beginPath();x.roundRect(a,b,w,h,r);x.fill()};
+  if(kind==="exterior"){
+    let g=x.createLinearGradient(0,0,0,H*.7); g.addColorStop(0,"#f4b860"); g.addColorStop(1,"#f9dfb0");
+    rect(0,0,W,H,g);
+    x.fillStyle="#f6d38a"; x.beginPath(); x.arc(W*.78,H*.3,46,0,7); x.fill();
+    x.fillStyle="#7a9a5b"; x.beginPath(); x.ellipse(120,H*.62,170,90,0,0,7); x.fill(); x.beginPath(); x.ellipse(W-60,H*.64,150,80,0,0,7); x.fill();
+    rect(0,H*.7,W,H*.3,"#b5652f");
+    rect(0,H*.7,W,10,"#8f4b22");
+    rr(W*.2,H*.25,W*.6,H*.46,6,p.wall);
+    rect(W*.18,H*.22,W*.64,22,"#5d3a26");
+    for(let i=0;i<4;i++){ rr(W*.25+i*W*.14,H*.34,W*.09,H*.12,4,"#3b5560"); rect(W*.25+i*W*.14+W*.044,H*.34,4,H*.12,p.wall); }
+    rr(W*.46,H*.5,W*.08,H*.21,4,p.accent);
+    rr(W*.43,H*.27,W*.14,24,4,"#c9972f"); x.fillStyle="#10282b"; x.font="800 20px sans-serif"; x.textAlign="center"; x.fillText("BLOCK "+key,W*.5,H*.27+18);
+    return c.toDataURL("image/jpeg",.86);
+  }
+  // interiors
+  rect(0,0,W,H,p.wall);
+  rect(0,H*.72,W,H*.28,p.floor);
+  x.globalAlpha=.12; for(let i=0;i<12;i++) rect(i*90,H*.72,3,H*.28,"#000"); x.globalAlpha=1;
+  rect(0,H*.72-8,W,8,"rgba(0,0,0,.08)");
+  // window
+  const wx = kind==="bath"? W*.66 : W*.08, ww = kind==="bath"? W*.22: W*.26;
+  let sky=x.createLinearGradient(0,H*.12,0,H*.5); sky.addColorStop(0,"#9fd0e6"); sky.addColorStop(1,"#e6f1f0");
+  rr(wx,H*.12,ww,H*.36,6,"#fff"); rect(wx+10,H*.12+10,ww-20,H*.36-20,sky);
+  x.fillStyle="#86a86a"; x.beginPath(); x.ellipse(wx+ww*.5,H*.45,ww*.45,30,0,0,7); x.fill();
+  rect(wx+ww/2-3,H*.12+10,6,H*.36-20,"#fff");
+  rr(wx-18,H*.08,24,H*.5,8,p.accent); rr(wx+ww-6,H*.08,24,H*.5,8,p.accent);
+  if(kind==="bedroom"){
+    rr(W*.42,H*.36,W*.46,H*.2,14,"#6b4a33");
+    rr(W*.4,H*.52,W*.5,H*.24,16,p.fabric);
+    rr(W*.4,H*.6,W*.5,H*.16,10,p.accent);
+    rr(W*.45,H*.47,W*.12,H*.08,14,"#fff"); rr(W*.72,H*.47,W*.12,H*.08,14,"#fff");
+    rr(W*.34,H*.56,W*.05,H*.16,4,"#7a573c");
+    rect(W*.36,H*.46,4,H*.1,"#333"); x.fillStyle="#f2c86b"; x.beginPath(); x.moveTo(W*.335,H*.46); x.lineTo(W*.385,H*.46); x.lineTo(W*.37,H*.41); x.lineTo(W*.35,H*.41); x.fill();
+  } else if(kind==="living"){
+    rr(W*.42,H*.5,W*.44,H*.2,18,p.accent);
+    rr(W*.44,H*.42,W*.4,H*.14,16,p.accent); x.globalAlpha=.18; rr(W*.44,H*.42,W*.4,H*.14,16,"#000"); x.globalAlpha=1;
+    rr(W*.5,H*.46,W*.08,H*.08,10,p.fabric); rr(W*.7,H*.46,W*.08,H*.08,10,"#c9972f");
+    rr(W*.5,H*.76,W*.22,H*.05,6,"#5b3f2c");
+    rr(W*.48,H*.18,W*.32,H*.17,6,"#1d2b2e");
+    rect(W*.92,H*.5,6,H*.22,"#5b3f2c"); x.fillStyle="#4f7a45"; x.beginPath(); x.arc(W*.925,H*.47,40,0,7); x.fill();
+  } else if(kind==="bath"){
+    rect(0,0,W*.6,H*.72,"#eef2f1");
+    x.strokeStyle="rgba(0,0,0,.07)"; x.lineWidth=2;
+    for(let i=0;i<W*.6;i+=48){x.beginPath();x.moveTo(i,0);x.lineTo(i,H*.72);x.stroke();}
+    for(let j=0;j<H*.72;j+=48){x.beginPath();x.moveTo(0,j);x.lineTo(W*.6,j);x.stroke();}
+    rr(W*.08,H*.2,W*.2,H*.52,6,"rgba(160,200,215,.35)");
+    rect(W*.17,H*.16,6,H*.1,"#9aa"); rr(W*.14,H*.14,W*.07,14,7,"#9aa");
+    rr(W*.36,H*.46,W*.18,H*.08,8,"#fff"); rr(W*.37,H*.54,W*.16,H*.18,6,p.accent);
+    rr(W*.39,H*.18,W*.12,H*.22,40,"#cfe0e4");
+    rr(W*.56,H*.28,W*.04,H*.22,6,p.fabric);
+  } else if(kind==="kitchen"){
+    rr(W*.4,H*.5,W*.54,H*.22,4,p.accent);
+    rect(W*.4,H*.48,W*.54,H*.03,"#e8e2d8");
+    rr(W*.42,H*.15,W*.5,H*.15,4,p.accent); x.globalAlpha=.85; rr(W*.42,H*.15,W*.5,H*.15,4,"#fff"); x.globalAlpha=1;
+    for(let i=0;i<4;i++) rect(W*.42+i*W*.125,H*.53,2,H*.19,"rgba(0,0,0,.15)");
+    rr(W*.6,H*.42,W*.07,H*.06,6,"#333"); rr(W*.8,H*.4,W*.04,H*.08,4,"#c9972f");
+    rr(W*.2,H*.56,W*.14,H*.16,6,"#6b4a33"); rr(W*.21,H*.5,W*.05,H*.08,4,"#6b4a33"); rr(W*.28,H*.5,W*.05,H*.08,4,"#6b4a33");
+  }
+  // sample watermark
+  x.fillStyle="rgba(16,40,43,.55)"; rr(18,H-46,150,30,15,"rgba(16,40,43,.55)");
+  x.fillStyle="#fff"; x.font="600 15px sans-serif"; x.textAlign="left"; x.fillText("Sample image",36,H-26);
+  return c.toDataURL("image/jpeg",.86);
+}
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(a,b,w,h){this.rect(a,b,w,h)};
+}
+
+/* ---------- Build photo list ---------- */
+const KIND_LABEL = {bedroom:"Bedroom", living:"Sitting area", bath:"Bathroom", kitchen:"Kitchenette", exterior:"Exterior"};
+const PHOTOS = [];
+let usingSamples = false;
+CONFIG.suites.forEach(s=>{
+  if(s.photos.length){
+    s.photos.forEach(ph=>PHOTOS.push({src:ph.src||ph, cap:(ph.caption||"Suite "+s.id), tag:s.id, block:s.block}));
+  } else {
+    usingSamples = true;
+    const kinds = s.features.includes("Kitchenette") ? ["bedroom","living","kitchen","bath"] : ["bedroom","living","bath"];
+    kinds.forEach(k=>PHOTOS.push({src:drawScene(k,s.id), cap:"Suite "+s.id+" · "+KIND_LABEL[k], tag:s.id, block:s.block}));
+  }
+});
+["A","B"].forEach(b=>{
+  const list = CONFIG.blockPhotos[b];
+  if(list.length) list.forEach(ph=>PHOTOS.push({src:ph.src||ph, cap:ph.caption||"Block "+b, tag:"ext", block:b}));
+  else { usingSamples = true; PHOTOS.push({src:drawScene("exterior",b), cap:"Block "+b+" · Exterior", tag:"ext", block:b}); }
+});
+const photosFor = id => PHOTOS.filter(p=>p.tag===id);
+
+/* ---------- Hero plates ---------- */
+const plateHTML = (s, cls="") => `<a class="plate ${cls}" href="#suite-${s.id}"><span class="num">${esc(s.id)}</span><span class="meta"><span>Block ${esc(s.block)}</span><span>Sleeps ${s.sleeps}</span></span></a>`;
+$("#heroPlates").innerHTML = ["A","B"].map(b=>`<div class="block-col"><span class="block-label">Block ${b}</span>${CONFIG.suites.filter(s=>s.block===b).map(s=>plateHTML(s)).join("")}</div>`).join("");
+
+/* ---------- Suites ---------- */
+$("#suiteGroups").innerHTML = ["A","B"].map(b=>`
+  <div class="block-group"><h3>Block ${b}</h3><div class="suite-row">
+  ${CONFIG.suites.filter(s=>s.block===b).map(s=>{
+    const ph = photosFor(s.id);
+    return `<article class="suite" id="suite-${s.id}">
+      <button class="suite-photo" data-open="${s.id}" aria-label="View photos of suite ${s.id}">
+        <img src="${ph[0]?.src||""}" alt="Suite ${s.id}">
+        <span class="plate mini-plate"><span class="num">${esc(s.id)}</span></span>
+        <span class="count">${ph.length} photos</span>
+      </button>
+      <div class="suite-body">
+        <div><h3>Suite ${esc(s.id)}</h3><span class="type">${esc(s.type)} · Block ${esc(s.block)} · Sleeps ${s.sleeps}</span></div>
+        <p class="desc">${esc(s.desc)}</p>
+        <div class="chips">${s.features.map(f=>`<span class="chip">${esc(f)}</span>`).join("")}</div>
+        <div class="suite-foot">
+          <span class="rate">${s.rate ? money(s.rate)+' <small>/ night</small>' : 'Rate on request'}</span>
+          <span class="suite-actions">
+            <button class="btn btn-ghost btn-sm" data-filter="${s.id}">Photos</button>
+            <button class="btn btn-brass btn-sm" data-book="${s.id}">Book ${esc(s.id)}</button>
+          </span>
+        </div>
+      </div></article>`;
+  }).join("")}
+  </div></div>`).join("");
+
+/* ---------- Gallery ---------- */
+const FILTERS = [{k:"all",l:"All photos"}, ...CONFIG.suites.map(s=>({k:s.id,l:"Suite "+s.id})), {k:"ext",l:"Exterior"}];
+let current = "all", view = [];
+$("#filters").innerHTML = FILTERS.map(f=>`<button class="filter" data-f="${f.k}" aria-pressed="${f.k==="all"}">${f.l}</button>`).join("");
+function renderGrid(){
+  view = current==="all" ? PHOTOS : PHOTOS.filter(p=>p.tag===current);
+  $("#grid").innerHTML = view.map((p,i)=>`<figure class="tile ${current==="all" && i%7===0 ? "big":""}" style="margin:0"><button class="tile" style="width:100%;height:100%" data-i="${i}" aria-label="Open photo: ${esc(p.cap)}"><img src="${p.src}" alt="${esc(p.cap)}"><figcaption>${esc(p.cap)}</figcaption></button></figure>`).join("");
+  $("#grid").querySelectorAll("figure.big").forEach(f=>f.classList.add("big"));
+  document.querySelectorAll(".filter").forEach(b=>b.setAttribute("aria-pressed", b.dataset.f===current));
+}
+$("#filters").addEventListener("click",e=>{const b=e.target.closest(".filter"); if(!b) return; current=b.dataset.f; renderGrid();});
+$("#grid").addEventListener("click",e=>{const b=e.target.closest("button[data-i]"); if(b) openLB(+b.dataset.i);});
+$("#galleryNote").textContent = usingSamples ? "Drawn sample images are shown until the real suite photos are added." : "";
+renderGrid();
+
+/* ---------- Lightbox ---------- */
+let lbi = 0, lastFocus = null;
+function showLB(){ const p=view[lbi]; $("#lbImg").src=p.src; $("#lbImg").alt=p.cap; $("#lbCap").textContent=p.cap+"  ·  "+(lbi+1)+" of "+view.length; }
+function openLB(i){ lastFocus=document.activeElement; lbi=i; showLB(); $("#lb").classList.add("open"); $("#lbClose").focus(); document.body.style.overflow="hidden"; }
+function closeLB(){ $("#lb").classList.remove("open"); document.body.style.overflow=""; lastFocus&&lastFocus.focus(); }
+const step = d => { lbi=(lbi+d+view.length)%view.length; showLB(); };
+$("#lbClose").onclick=closeLB; $("#lbPrev").onclick=()=>step(-1); $("#lbNext").onclick=()=>step(1);
+$("#lb").addEventListener("click",e=>{ if(e.target.id==="lb") closeLB(); });
+document.addEventListener("keydown",e=>{ if(!$("#lb").classList.contains("open")) return;
+  if(e.key==="Escape") closeLB(); if(e.key==="ArrowRight") step(1); if(e.key==="ArrowLeft") step(-1); });
+let tx=null; $("#lb").addEventListener("touchstart",e=>tx=e.touches[0].clientX,{passive:true});
+$("#lb").addEventListener("touchend",e=>{ if(tx==null) return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) step(dx<0?1:-1); tx=null; });
+
+document.addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"); if(o){ current=o.dataset.open; renderGrid(); openLB(0); return; }
+  const f=e.target.closest("[data-filter]"); if(f){ current=f.dataset.filter; renderGrid(); $("#gallery").scrollIntoView(); return; }
+  const bk=e.target.closest("[data-book]"); if(bk){ const r=document.getElementById("pick-"+bk.dataset.book); if(r){ r.checked=true; updateSummary(); } $("#book").scrollIntoView(); setTimeout(()=>$("#checkin").focus({preventScroll:true}),400); }
+});
+
+/* ---------- Map ---------- */
+(function buildMap(){
+  const box=$("#map");
+  const framed = (()=>{ try { return window.self !== window.top; } catch(e){ return true; } })();
+  if(!framed){
+    const q = encodeURIComponent(mapPoint);
+    box.innerHTML = `<iframe title="Map showing DAL Suits BnB at Nyarach Kobura, Rongo" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${q}&z=16&output=embed"></iframe>`;
+    return;
+  }
+  // Inside a preview frame external maps are blocked: draw a location card instead.
+  const c=document.createElement("canvas"); box.appendChild(c);
+  const draw=()=>{ const r=box.getBoundingClientRect(), d=devicePixelRatio||1; c.width=r.width*d; c.height=r.height*d;
+    const x=c.getContext("2d"); x.scale(d,d); const W=r.width,H=r.height;
+    x.fillStyle="#e4ebe5"; x.fillRect(0,0,W,H);
+    x.fillStyle="#d6e2d4"; for(let i=0;i<14;i++){ x.fillRect((i*137)%W,(i*89)%H,90,60); }
+    x.strokeStyle="#fff"; x.lineWidth=10; x.lineCap="round";
+    x.beginPath(); x.moveTo(-10,H*.62); x.bezierCurveTo(W*.3,H*.55,W*.55,H*.7,W+10,H*.48); x.stroke();
+    x.lineWidth=5; x.beginPath(); x.moveTo(W*.46,-10); x.bezierCurveTo(W*.5,H*.3,W*.44,H*.45,W*.52,H*.62); x.stroke();
+    x.beginPath(); x.moveTo(W*.52,H*.62); x.lineTo(W*.7,H+10); x.stroke();
+    const px=W*.5, py=H*.4;
+    x.fillStyle="rgba(201,151,47,.25)"; x.beginPath(); x.arc(px,py+4,26,0,7); x.fill();
+    x.fillStyle="#10282b"; x.beginPath(); x.moveTo(px,py+8); x.arc(px,py-16,14,Math.PI*.8,Math.PI*2.2); x.closePath(); x.fill();
+    x.fillStyle="#c9972f"; x.beginPath(); x.arc(px,py-16,5.5,0,7); x.fill();
+    x.font="700 14px Figtree, sans-serif"; x.textAlign="center"; x.fillStyle="#10282b";
+    x.fillText("DAL Suits BnB", px, py-40); x.font="500 12px Figtree, sans-serif"; x.fillStyle="#5a6a68"; x.fillText("Nyarach Kobura, Rongo", px, py-24-30+46+46);
+  };
+  draw(); addEventListener("resize",draw);
+  const fb=document.createElement("div"); fb.className="map-fallback";
+  fb.innerHTML=`<span>Pinned at ${CONFIG.map.lat ?? ""}, ${CONFIG.map.lng ?? ""}. The live Google map shows on the hosted website.</span><a class="btn btn-ink btn-sm" href="${mapsLink}" target="_blank" rel="noopener">Open in Google Maps</a>`;
+  box.appendChild(fb);
+})();
+$("#locAddr").textContent = CONFIG.address;
+$("#heroAddr").textContent = CONFIG.address.replace(", Kenya","");
+$("#locDirections").textContent = CONFIG.directions;
+$("#locTimes").textContent = "Check-in from " + CONFIG.checkIn + " · Check-out by " + CONFIG.checkOut;
+$("#dirBtn").href = dirLink;
+$("#callBtn2").href = telHref;
+$("#callBtn2").textContent = "Call " + CONFIG.phone;
+
+/* ---------- Contacts ---------- */
+$("#contactGrid").innerHTML = `
+  <div class="contact"><span class="t">Call us</span>${CONFIG.phones.map(n=>`<a class="v" style="text-decoration:none" href="${telOf(n)}">${esc(n)}</a>`).join("")}</div>
+  <a class="contact" href="${waHref("Hello DAL Suits BnB, I'd like to ask about a stay.")}" target="_blank" rel="noopener"><span class="t">WhatsApp</span><span class="v">${esc(waDisplay)}</span><span class="small">Tap to chat</span></a>
+  ${CONFIG.email ? `<a class="contact" href="mailto:${CONFIG.email}"><span class="t">Email</span><span class="v">${esc(CONFIG.email)}</span></a>` : ""}
+  <div class="contact"><span class="t">Hours</span><span class="v" style="font-weight:600;font-size:.98rem">${esc(CONFIG.hours)}</span></div>`;
+$("#waFloat").href = waHref("Hello DAL Suits BnB, I'd like to ask about a stay.");
+$("#yr").textContent = new Date().getFullYear();
+
+/* ---------- Booking ---------- */
+const pick=$("#suitePick");
+pick.innerHTML = `<input type="radio" name="suite" id="pick-any" value="any" checked><label for="pick-any"><b style="font-size:1.05rem;font-family:var(--body);font-stretch:100%">Any</b><small>first free</small></label>` +
+  CONFIG.suites.map(s=>`<input type="radio" name="suite" id="pick-${s.id}" value="${s.id}"><label for="pick-${s.id}"><b>${s.id}</b><small>Block ${s.block}</small></label>`).join("");
+const iso = d => d.toISOString().slice(0,10);
+const today = new Date(); today.setHours(12,0,0,0);
+$("#checkin").min = iso(today);
+const addDays=(s,n)=>{const d=new Date(s+"T12:00:00"); d.setDate(d.getDate()+n); return iso(d);};
+const nightsBetween=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
+const fmt = s => new Date(s+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+function chosenSuite(){ const v=document.querySelector('input[name="suite"]:checked').value; return v==="any"?null:CONFIG.suites.find(s=>s.id===v); }
+function updateSummary(){
+  const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
+  $("#sSuite").textContent = s ? "Suite "+s.id+" · Block "+s.block : "Any available";
+  $("#sGuests").textContent = $("#guests").value;
+  const n = (a&&b) ? nightsBetween(a,b) : 0;
+  $("#sDates").textContent = a&&b&&n>0 ? fmt(a)+" → "+fmt(b) : "Choose dates";
+  $("#sNights").textContent = n>0 ? n : "–";
+  if(n>0 && s && s.rate){ $("#sTotal").textContent = money(s.rate*n); $("#sNote").textContent = money(s.rate)+" × "+n+" night"+(n>1?"s":"")+". Final amount confirmed by the host."; }
+  else { $("#sTotal").textContent = "On request"; $("#sNote").textContent = "We confirm the rate and payment details (M-Pesa or cash) when we reply to your request."; }
+}
+$("#checkin").addEventListener("change",()=>{ const a=$("#checkin").value; if(a){ $("#checkout").min=addDays(a,1); if(!$("#checkout").value || $("#checkout").value<=a) $("#checkout").value=addDays(a,1);} updateSummary(); });
+["checkout","guests"].forEach(id=>$("#"+id).addEventListener("change",updateSummary));
+pick.addEventListener("change",updateSummary);
+
+function validate(){
+  let ok=true; const set=(id,msg)=>{ $("#e-"+id).textContent=msg; if(msg){ ok=false; } };
+  const a=$("#checkin").value, b=$("#checkout").value;
+  set("checkin", !a ? "Choose your check-in date." : (a<iso(today) ? "Check-in can't be in the past." : ""));
+  set("checkout", !b ? "Choose your check-out date." : (a && b<=a ? "Check-out must be after check-in." : ""));
+  set("name", $("#name").value.trim().length<2 ? "Enter your full name." : "");
+  const ph=$("#phone").value.replace(/[\s-]/g,"");
+  set("phone", !/^(\+?254|0)?[17]\d{8}$/.test(ph) ? "Enter a valid Kenyan number, e.g. 0712 345 678." : "");
+  const em=$("#email").value.trim();
+  set("email", em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) ? "Check the email address, or leave it blank." : "");
+  return ok;
+}
+let lastText="";
+$("#bookForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!validate()){ const f=document.querySelector(".err:not(:empty)"); f && f.previousElementSibling && f.previousElementSibling.focus(); return; }
+  const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value, n=nightsBetween(a,b);
+  const ref="DAL-"+a.replace(/-/g,"").slice(2)+"-"+Math.random().toString(36).slice(2,5).toUpperCase();
+  lastText = [
+    "Booking request "+ref,
+    "Suite: "+(s?("Suite "+s.id+" (Block "+s.block+")"):"Any available suite"),
+    "Check-in: "+fmt(a)+" ("+$("#arrival").value.toLowerCase()+")",
+    "Check-out: "+fmt(b)+" ("+n+" night"+(n>1?"s":"")+")",
+    "Guests: "+$("#guests").value,
+    "Name: "+$("#name").value.trim(),
+    "Phone: "+$("#phone").value.trim(),
+    $("#email").value.trim() ? "Email: "+$("#email").value.trim() : "",
+    $("#notes").value.trim() ? "Notes: "+$("#notes").value.trim() : ""
+  ].filter(Boolean).join("\n");
+  $("#ref").textContent = ref;
+  $("#waSend").href = waHref("Hello DAL Suits BnB, I'd like to book.\n\n"+lastText);
+  if(CONFIG.email){ $("#mailSend").href = "mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Booking request "+ref)+"&body="+encodeURIComponent(lastText); }
+  else { $("#mailSend").style.display="none"; }
+  $("#confirmContacts").textContent = "If WhatsApp doesn't open, copy the details and send them to "+waDisplay+", or call "+CONFIG.phones.join(" / ")+".";
+  $("#confirm").classList.add("show");
+  $("#confirm").scrollIntoView({block:"nearest"});
+});
+$("#copyBtn").addEventListener("click",async()=>{
+  try{ await navigator.clipboard.writeText(lastText); $("#copyBtn").textContent="Copied"; }
+  catch(e){ $("#copyBtn").textContent="Copy blocked: select the text instead"; }
+  setTimeout(()=>$("#copyBtn").textContent="Copy details",2500);
+});
+updateSummary();
+
+/* ---------- Mobile menu ---------- */
+$("#menuBtn").addEventListener("click",()=>{ const o=$("#navLinks").classList.toggle("open"); $("#menuBtn").setAttribute("aria-expanded",o); });
+$("#navLinks").addEventListener("click",e=>{ if(e.target.closest("a")){ $("#navLinks").classList.remove("open"); $("#menuBtn").setAttribute("aria-expanded","false"); }});
+</script>
+</body>
+</html>
