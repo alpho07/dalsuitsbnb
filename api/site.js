@@ -52,7 +52,7 @@ site.post("/api/bookings", express.json({ limit: "20kb" }), async (req, res, nex
     const { booking, available, label } = await createWebsiteBooking(req.body);
     list.push(now); recent.set(ip, list);
     notifyNewBooking(booking).catch(e => console.error("Host alert failed", e));
-    res.status(201).json({ ok: true, ref: booking.ref, status: booking.status, available, suite: booking.suite, option: booking.option, label, total: booking.quote?.total ?? null });
+    res.status(201).json({ ok: true, ref: booking.ref, status: booking.status, available, suite: booking.suite, option: booking.option, listing: label?.split(" · ")[0].replace("Suite ", "") ?? null, label, total: booking.quote?.total ?? null });
   } catch (e) {
     if (e.status === 400) return res.status(400).json({ error: e.message });
     next(e);

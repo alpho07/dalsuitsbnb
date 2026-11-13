@@ -154,8 +154,8 @@ textarea{min-height:80px;resize:vertical}input:focus,select:focus,textarea:focus
         <label>Bedrooms<input id="u-bedrooms" type="number" min="1" max="10" required></label>
         <label>Whole unit: price per night (KES)<input id="u-price" type="number" min="0" step="50" required></label>
         <label>Whole unit: guests<input id="u-sleeps" type="number" min="1" max="20" required></label>
-        <label>1 bedroom only: price per night (KES) <span class="hint">(leave empty if not offered)</span><input id="u-roomprice" type="number" min="0" step="50"></label>
-        <label>1 bedroom only: guests<input id="u-roomsleeps" type="number" min="1" max="20"></label>
+        <label>1-bedroom listing (.1B): price per night (KES) <span class="hint">(leave empty to list only the full suite)</span><input id="u-roomprice" type="number" min="0" step="50"></label>
+        <label>1-bedroom listing (.1B): guests<input id="u-roomsleeps" type="number" min="1" max="20"></label>
         <p class="hint full" style="margin:-4px 0 0">A 1-bedroom booking still keeps the whole unit private for those nights.</p>
         <label class="full">Description<textarea id="u-desc" maxlength="1000"></textarea></label>
         <label class="full">Features <span class="hint">(comma separated, e.g. Fast Wi-Fi, Smart TV: Netflix &amp; YouTube)</span><input id="u-features" maxlength="500"></label>
@@ -246,8 +246,8 @@ async function loadUnits() {
       <div class="body">
         <div class="row spread"><h3>${esc(u.name)}</h3><span class="pill ${u.active ? "live" : "hidden"}">${u.active ? "Live" : "Hidden"}</span></div>
         <div class="meta">Block ${esc(u.block || "–")} · ${u.bedrooms} bedroom${u.bedrooms > 1 ? "s" : ""} · ${u.photos.length} photo${u.photos.length === 1 ? "" : "s"}</div>
-        ${u.roomPrice ? line(`1 bedroom (${u.roomSleeps || 2} guests)`, u.roomPrice, ro) : ""}
-        ${line(u.roomPrice ? `Whole suite (${u.sleeps} guests)` : `Sleeps ${u.sleeps}`, u.price, o)}
+        ${u.roomPrice ? line(`${esc(u.code)}.1B · 1 bedroom (${u.roomSleeps || 2} guests)`, u.roomPrice, ro) : ""}
+        ${line(`${esc(u.code)}.${u.bedrooms}B · ${u.bedrooms} bedroom${u.bedrooms > 1 ? "s" : ""} (${u.sleeps} guests)`, u.price, o)}
         ${o ? `<div><span class="pill offer">${esc(o.label)}</span></div>` : ""}
         <div><button class="btn btn-sm" data-edit="${u.id}">Edit unit &amp; photos</button></div>
       </div></article>`;
@@ -399,7 +399,7 @@ function previewOffer() {
   if (!u || !v) { $("#offerPreview").textContent = ""; return; }
   const n = Math.max(Number(b.minNights) || 1, 2);
   const ex = (price, what) => { const base = price * n, off = b.kind === "percent" ? Math.round(base * v / 100) : Math.min(base, v * n); return `${what} ${kes(base)} → ${kes(base - off)}`; };
-  $("#offerPreview").textContent = `Example, ${u.name} for ${n} nights: ` + [u.roomPrice ? ex(u.roomPrice, "1 bedroom") : null, ex(u.price, u.roomPrice ? "whole suite" : "")].filter(Boolean).join(" · ") + ".";
+  $("#offerPreview").textContent = `Example, ${u.name} for ${n} nights: ` + [u.roomPrice ? ex(u.roomPrice, "1 bedroom") : null, ex(u.price, u.roomPrice ? u.bedrooms + " bedrooms" : "")].filter(Boolean).join(" · ") + ".";
 }
 ["input", "change"].forEach(t => $("#offerForm").addEventListener(t, previewOffer));
 function resetOffer() { editingOffer = null; $("#offerForm").reset(); $("#o-min").value = 1; $("#o-active").checked = true; $("#offerTitle").textContent = "New offer"; $("#offerReset").hidden = true; $("#offerErr").textContent = ""; previewOffer(); }
@@ -433,7 +433,7 @@ async function loadBookings() {
   const fmt = s => new Date(s + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   const nights = b => Math.round((Date.parse(b.out) - Date.parse(b.in)) / 864e5);
   $("#bookingRows").innerHTML = bookings.length ? bookings.map(b => `<tr>
-    <td><span class="pill ${esc(b.status)}">${esc(b.status)}</span></td><td><b>${esc(b.ref)}</b></td><td>${esc(b.suite)}${b.option === "room" ? '<div class="meta">1 bedroom</div>' : b.status === "blocked" ? "" : '<div class="meta">Whole suite</div>'}</td>
+    <td><span class="pill ${esc(b.status)}">${esc(b.status)}</span></td><td><b>${esc(b.ref)}</b></td><td>${b.status === "blocked" ? esc(b.suite) + '<div class="meta">.1B &amp; .2B</div>' : esc(b.suite) + (b.option === "room" ? ".1B" : "." + ((UNITS.find(u => u.code === b.suite) || {}).bedrooms || 2) + "B") + `<div class="meta">${b.option === "room" ? "1 bedroom" : ((UNITS.find(u => u.code === b.suite) || {}).bedrooms || 2) + " bedrooms"}</div>`}</td>
     <td>${fmt(b.in)} → ${fmt(b.out)}<div class="meta">${nights(b)} night${nights(b) > 1 ? "s" : ""}</div></td>
     <td>${esc(b.name)}${b.guests ? ` <span class="meta">(${b.guests})</span>` : ""}${b.phone ? `<div class="meta"><a href="tel:+${esc(b.phone)}">+${esc(b.phone)}</a> · <a href="https://wa.me/${esc(b.phone)}" target="_blank" rel="noopener">WhatsApp</a></div>` : ""}${b.email ? `<div class="meta">${esc(b.email)}</div>` : ""}${b.notes ? `<div class="meta">${esc(b.notes)}</div>` : ""}</td>
     <td>${b.quote ? kes(b.quote.total) + (b.quote.discount ? `<div class="meta">${esc(b.quote.discount.label)}</div>` : "") : "–"}</td><td class="meta">${esc(b.source)}${b.status === "unavailable" ? '<div class="meta" style="color:var(--err)">Dates were taken: call guest</div>' : ""}</td></tr>`).join("")

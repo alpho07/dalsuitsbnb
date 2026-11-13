@@ -85,9 +85,10 @@ CREATE TABLE IF NOT EXISTS dal_discounts (
 ) CHARACTER SET utf8mb4;
 
 -- Starting units (same as SEED_UNITS in lib/config.js); skipped if the numbers already exist.
--- Every suite has 2 bedrooms: whole suite KES 5,000 (4 guests) or 1 bedroom KES 2,500 (2 guests).
+-- Every suite has 2 bedrooms and is listed twice: <code>.2B (2 bedrooms, KES 5,000, 4 guests)
+-- and <code>.1B (1 bedroom, KES 2,500, 2 guests). Booking one blocks the other for those dates.
 INSERT IGNORE INTO dal_units (code, name, block, bedrooms, sleeps, price, room_price, room_sleeps, description, features, sort) VALUES
-  ('110', 'Suite 110', 'A', 2, 4, 5000, 2500, 2, 'Modern, stylish two-bedroom suite with a cozy sitting area. Book one bedroom or the whole suite.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Private bathroom"]', 1),
+  ('110', 'Suite 110', 'A', 2, 4, 5000, 2500, 2, 'Modern, stylish two-bedroom suite with a cozy sitting area.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Private bathroom"]', 1),
   ('123', 'Suite 123', 'A', 2, 4, 5000, 2500, 2, 'Clean, spacious two-bedroom suite. Quiet and secluded, ideal for resting.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Work desk"]', 2),
   ('115', 'Suite 115', 'B', 2, 4, 5000, 2500, 2, 'Spacious, cozy two-bedroom suite. Perfect for families.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Lounge"]', 3),
   ('117', 'Suite 117', 'B', 2, 4, 5000, 2500, 2, 'Secluded two-bedroom corner suite, made for rest and longer stays.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Corner unit"]', 4);

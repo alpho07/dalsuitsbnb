@@ -52,6 +52,13 @@ app.get(/^\/(.+)\.html$/, (req, res, next) => req.params[0] === "index" ? res.re
 app.get("/og-image.png", (req, res) => res.redirect(301, "/og-image.jpg"));
 app.use(express.static(join(here, "public"), { maxAge: "1h", index: "index.html", extensions: ["html"] }));
 app.use((req, res) => res.status(404).sendFile(join(here, "public", "index.html")));
+// Last-resort error handler: log the details, never send stack traces to visitors.
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) return next(err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({ error: status < 500 && err.expose !== false ? err.message : "Server error. Please try again or call us." });
+});
 
 app.listen(PORT, () => {
   console.log(`DAL Suits BnB listening on ${PORT} (storage: ${storageMode})`);

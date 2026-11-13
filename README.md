@@ -48,7 +48,7 @@ Open `https://dalsuitsbnb.com/admin` and sign in with `ADMIN_PASSWORD`.
 - **Bookings:** upcoming bookings from WhatsApp and the website.
 
 The website and the WhatsApp bot read units, prices and offers from the database, so changes show within a minute.
-On first run the database is filled with Suites 110, 123, 115 and 117: each has 2 bedrooms and can be booked as 1 bedroom (KES 2,500, 2 guests) or the whole suite (KES 5,000, 4 guests). A 1-bedroom booking keeps the suite private. Databases from an earlier version are upgraded automatically on start (or run `database/migrations/` by hand).
+On first run the database is filled with Suites 110, 123, 115 and 117 (2 bedrooms each). Guests see every suite as two listings: **110.1B** (1 bedroom, KES 2,500, up to 2 guests) and **110.2B** (2 bedrooms, KES 5,000, up to 4), and so on: eight suites on the site and in WhatsApp. Both listings are the same rooms, so booking one makes the other unavailable for those dates. In the admin you manage the 4 physical suites; the 1-bedroom price creates the .1B listing. Databases from an earlier version are upgraded automatically on start (or run `database/migrations/` by hand).
 
 ## Website bookings
 
