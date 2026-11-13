@@ -20,11 +20,23 @@ and suite availability at `/api/availability`. Bookings are stored in MySQL.
 7. Point the WhatsApp webhook to `https://dalsuitsbnb.com/api/whatsapp` with the
    same `WA_VERIFY_TOKEN`, subscribed to `messages`.
 
+## Admin dashboard
+
+Open `https://dalsuitsbnb.com/admin` and sign in with `ADMIN_PASSWORD`.
+
+- **Units:** add, edit, hide or delete suites; set bedrooms, guests, price per night (KES).
+- **Photos:** upload per unit (resized in the browser, stored in MySQL), add captions, reorder, choose the cover.
+- **Offers:** percent off the stay or KES off per night, for one unit or all, with optional minimum nights and date window. Guests get the single best offer.
+- **Bookings:** upcoming bookings from WhatsApp and the website.
+
+The website and the WhatsApp bot read units, prices and offers from the database, so changes show within a minute.
+On first run the database is filled with Suites 110 and 123 (1 bedroom, KES 2,500) and 115 and 117 (2 bedrooms, KES 5,000).
+
 ## Editing
 
-- Website text, suites, contacts: `public/index.html` (the CONFIG block near the bottom).
-- Bot wording and flow: `lib/bot.js`; suite list for the bot: `lib/config.js`.
-- Nightly rates for the bot: `RATES` environment variable, no code change needed.
+- Units, photos, prices and offers: the admin dashboard, no code change needed.
+- Website text and contacts: `public/index.html` (the CONFIG block near the bottom).
+- Bot wording and flow: `lib/bot.js`; first-run units: `SEED_UNITS` in `lib/config.js`.
 
 ## Local run
 

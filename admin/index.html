@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>DAL Suits Admin</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,700..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Utilitarian dashboard in the site's palette: ink top bar, sage canvas, white cards. */
+:root{--ink:#10282b;--paper:#eef1ec;--surface:#fff;--muted:#5a6a68;--line:#d3dad4;--brass:#c9972f;--brass-hi:#e7c46a;
+--ok:#2f7a4f;--ok-bg:#e6f2ea;--warn:#8a5a00;--warn-bg:#fbf1dc;--err:#a8361f;--err-bg:#f8e6e1;
+--display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+*{box-sizing:border-box}html,body{margin:0}[hidden]{display:none!important}body{background:var(--paper);color:var(--ink);font:400 15px/1.5 var(--body)}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1}h2{font-size:1.6rem;font-stretch:85%}h3{font-size:1.15rem}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px;border-radius:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--ink)}.btn-primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn-brass{background:var(--brass);border-color:var(--brass)}
+.btn-danger{color:var(--err);border-color:#e3b9ae}.btn-sm{padding:5px 11px;font-size:.85rem}.btn[disabled]{opacity:.5;cursor:default}
+.top{background:var(--ink);color:#fff;position:sticky;top:0;z-index:10}
+.top .in{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:20px;height:60px}
+.brand{display:flex;gap:10px;align-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem}
+.mark{width:28px;height:28px;border-radius:7px;background:linear-gradient(145deg,var(--brass-hi),var(--brass));color:var(--ink);display:grid;place-items:center;font-size:.75rem}
+.tabs{display:flex;gap:4px;flex:1}.tab{background:none;border:0;color:#c9d6d3;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600}
+.tab[aria-selected="true"]{background:rgba(255,255,255,.12);color:#fff}
+.top .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}
+@media(max-width:640px){.brand span:last-child{display:none}.top .in{gap:8px}.tab{padding:8px 10px}}
+main{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+.head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.head p{color:var(--muted);margin:6px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.unit .cover{aspect-ratio:4/3;background:#dfe5df center/cover no-repeat;display:grid;place-items:center;color:var(--muted);font-size:.9rem;position:relative}
+.unit .cover .num{position:absolute;left:10px;top:10px;background:linear-gradient(150deg,#f0d283,var(--brass));font-family:var(--display);font-weight:800;font-stretch:75%;font-size:1.5rem;padding:2px 10px;border-radius:8px}
+.unit .body{padding:14px 16px 16px;display:grid;gap:6px}
+.meta{color:var(--muted);font-size:.9rem}
+.price{font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums}.price s{color:var(--muted);font-weight:500;margin-right:6px}
+.pill{display:inline-block;font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+.pill.live{background:var(--ok-bg);color:var(--ok)}.pill.hidden{background:#e9ecea;color:var(--muted)}.pill.offer{background:var(--warn-bg);color:var(--warn)}
+.pill.pending{background:var(--warn-bg);color:var(--warn)}.pill.confirmed{background:var(--ok-bg);color:var(--ok)}.pill.blocked{background:#e9ecea;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.spread{justify-content:space-between}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#f6f8f5}
+tr:last-child td{border-bottom:0}.tablewrap{overflow-x:auto}
+label{display:grid;gap:5px;font-size:.85rem;font-weight:600}
+input,select,textarea{background:#f6f8f5;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-weight:500}
+textarea{min-height:80px;resize:vertical}input:focus,select:focus,textarea:focus{background:#fff;outline:2px solid var(--brass)}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.form .full{grid-column:1/-1}
+@media(max-width:560px){.form{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:8px;font-weight:600}.check input{width:18px;height:18px}
+.hint{font-weight:400;color:var(--muted);font-size:.8rem}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(8,20,22,.45);display:none;z-index:20}.scrim.open{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--paper);z-index:21;transform:translateX(100%);transition:transform .2s ease;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.drawer .scroll{overflow:auto;padding:20px;display:grid;gap:22px}
+.drawer footer{padding:14px 20px;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:20px;text-align:center;color:var(--muted);cursor:pointer;background:#f9faf8}
+.drop.over{border-color:var(--brass);background:#fdf8ec}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.ph{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;display:grid}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.ph .ctl{padding:8px;display:grid;gap:6px}.ph input{padding:6px 8px;font-size:.8rem}
+.ph .cover-tag{font-size:.7rem;font-weight:700;color:var(--ok)}
+.ph .acts{display:flex;gap:4px;flex-wrap:wrap}.ph .acts button{padding:3px 8px;font-size:.75rem}
+.uploading{font-size:.85rem;color:var(--muted)}
+/* toast + login */
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;z-index:40;display:none}
+.toast.err{background:var(--err)}.toast.show{display:block}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login .card{padding:28px;width:min(380px,100%);display:grid;gap:14px}
+.err{color:var(--err);font-size:.85rem;min-height:1em}
+.empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:14px}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login" hidden>
+  <form class="card" id="loginForm">
+    <div class="brand"><span class="mark">DAL</span><span>DAL Suits Admin</span></div>
+    <label for="pw">Password<input id="pw" type="password" autocomplete="current-password" required></label>
+    <div class="err" id="loginErr" role="alert"></div>
+    <button class="btn btn-primary" type="submit">Sign in</button>
+  </form>
+</div>
+
+<div id="appView" hidden>
+  <div class="top"><div class="in">
+    <div class="brand"><span class="mark">DAL</span><span>DAL Suits Admin</span></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="units" aria-selected="true">Units</button>
+      <button class="tab" role="tab" data-tab="offers" aria-selected="false">Offers</button>
+      <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings</button>
+    </nav>
+    <a class="btn btn-sm" href="/" target="_blank" rel="noopener">View site</a>
+    <button class="btn btn-sm" id="logout">Sign out</button>
+  </div></div>
+
+  <main>
+    <section id="tab-units">
+      <div class="head"><div><h2>Units</h2><p>Suites guests can book. Hidden units stay in the system but don't show on the site or in WhatsApp.</p></div>
+        <button class="btn btn-brass" id="addUnit">+ Add unit</button></div>
+      <div class="grid" id="unitGrid"></div>
+    </section>
+
+    <section id="tab-offers" hidden>
+      <div class="head"><div><h2>Offers &amp; discounts</h2><p>Guests get the single best offer that applies to their stay. Offers never stack.</p></div></div>
+      <form class="box" id="offerForm" style="margin-bottom:18px">
+        <div class="row spread"><h3 id="offerTitle">New offer</h3><button class="btn btn-sm" type="button" id="offerReset" hidden>Cancel editing</button></div>
+        <div class="form">
+          <label>Applies to<select id="o-unit"></select></label>
+          <label>Discount type<select id="o-kind"><option value="percent">Percent off the stay</option><option value="amount">KES off per night</option></select></label>
+          <label><span id="o-value-label">Percent off</span><input id="o-value" type="number" min="1" required></label>
+          <label>Minimum nights<input id="o-min" type="number" min="1" max="60" value="1"></label>
+          <label>Stays starting from <span class="hint">(optional)</span><input id="o-starts" type="date"></label>
+          <label>Stays starting until <span class="hint">(optional)</span><input id="o-ends" type="date"></label>
+          <label class="full">Label shown to guests <span class="hint">(optional, e.g. "Graduation week offer")</span><input id="o-label" maxlength="80"></label>
+          <label class="check full"><input id="o-active" type="checkbox" checked> Offer is on</label>
+        </div>
+        <p class="meta" id="offerPreview"></p>
+        <div class="err" id="offerErr" role="alert"></div>
+        <div><button class="btn btn-primary" type="submit" id="offerSave">Save offer</button></div>
+      </form>
+      <div class="tablewrap"><table><thead><tr><th>Offer</th><th>Applies to</th><th>Conditions</th><th>Status</th><th></th></tr></thead><tbody id="offerRows"></tbody></table></div>
+    </section>
+
+    <section id="tab-bookings" hidden>
+      <div class="head"><div><h2>Upcoming bookings</h2><p>Confirm or decline from WhatsApp with CONFIRM or DECLINE and the reference.</p></div>
+        <button class="btn" id="refreshBookings">Refresh</button></div>
+      <div class="tablewrap"><table><thead><tr><th>Status</th><th>Reference</th><th>Unit</th><th>Dates</th><th>Guest</th><th>Source</th></tr></thead><tbody id="bookingRows"></tbody></table></div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-labelledby="drawerTitle" aria-modal="true" role="dialog">
+  <header><h3 id="drawerTitle">Unit</h3><button class="btn btn-sm" id="closeDrawer">Close</button></header>
+  <div class="scroll">
+    <form class="box" id="unitForm">
+      <div class="form">
+        <label>Unit number<input id="u-code" maxlength="12" required placeholder="e.g. 125"><span class="hint" id="codeHint">Can't be changed later; bookings use it.</span></label>
+        <label>Name<input id="u-name" maxlength="80" required placeholder="Suite 125"></label>
+        <label>Block<input id="u-block" maxlength="16" placeholder="A"></label>
+        <label>Price per night (KES)<input id="u-price" type="number" min="0" step="50" required></label>
+        <label>Bedrooms<input id="u-bedrooms" type="number" min="1" max="10" required></label>
+        <label>Sleeps (guests)<input id="u-sleeps" type="number" min="1" max="20" required></label>
+        <label class="full">Description<textarea id="u-desc" maxlength="1000"></textarea></label>
+        <label class="full">Features <span class="hint">(comma separated, e.g. Fast Wi-Fi, Smart TV: Netflix &amp; YouTube)</span><input id="u-features" maxlength="500"></label>
+        <label>Display order<input id="u-sort" type="number" min="0" max="9999"></label>
+        <label class="check" style="align-self:end"><input id="u-active" type="checkbox" checked> Show on site &amp; WhatsApp</label>
+      </div>
+      <div class="err" id="unitErr" role="alert"></div>
+    </form>
+    <div class="box" id="photoBox">
+      <div class="row spread"><h3>Photos</h3><span class="meta" id="photoCount"></span></div>
+      <div class="drop" id="drop" tabindex="0" role="button">Drop photos here or <u>choose files</u><br><span class="hint">JPG, PNG or WebP. Large photos are resized before upload. The first photo is the cover.</span></div>
+      <input id="files" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+      <div class="uploading" id="uploading"></div>
+      <div class="photos" id="photoList"></div>
+    </div>
+  </div>
+  <footer><button class="btn btn-danger" id="deleteUnit">Delete unit</button><button class="btn btn-primary" id="saveUnit">Save unit</button></footer>
+</aside>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const kes = n => "KES " + Number(n).toLocaleString("en-KE");
+let UNITS = [], OFFERS = [], editing = null, editingOffer = null;
+
+function toast(msg, err) { const t = $("#toast"); t.textContent = msg; t.className = "toast show" + (err ? " err" : ""); clearTimeout(t._h); t._h = setTimeout(() => t.className = "toast", 2600); }
+
+async function api(path, opts = {}) {
+  const init = { credentials: "same-origin", ...opts, headers: { ...(opts.headers || {}) } };
+  if (opts.json !== undefined) { init.body = JSON.stringify(opts.json); init.headers["Content-Type"] = "application/json"; delete init.json; }
+  const r = await fetch(path, init);
+  if (r.status === 401 && !path.endsWith("/login")) { showLogin(); throw new Error("Please sign in."); }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
+  return data;
+}
+
+/* ---------------- session */
+function showLogin() { $("#appView").hidden = true; $("#loginView").hidden = false; $("#pw").focus(); }
+async function showApp() { $("#loginView").hidden = true; $("#appView").hidden = false; await loadUnits(); await loadOffers(); }
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("#loginErr").textContent = "";
+  try { await api("/admin/api/login", { method: "POST", json: { password: $("#pw").value } }); $("#pw").value = ""; showApp(); }
+  catch (err) { $("#loginErr").textContent = err.message; }
+});
+$("#logout").addEventListener("click", async () => { await api("/admin/api/logout", { method: "POST" }).catch(() => {}); showLogin(); });
+
+/* ---------------- tabs */
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  ["units", "offers", "bookings"].forEach(k => $("#tab-" + k).hidden = k !== t.dataset.tab);
+  if (t.dataset.tab === "bookings") loadBookings();
+  if (t.dataset.tab === "offers") loadOffers();
+}));
+
+/* ---------------- units */
+function bestOffer(u) {
+  const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+  let best = null;
+  for (const d of OFFERS) {
+    if (!d.active || (d.unitId != null && d.unitId !== u.id) || (d.ends && d.ends < today)) continue;
+    const n = Math.max(1, d.minNights), per = d.kind === "percent" ? Math.round(u.price * d.value / 100) : Math.min(u.price, d.value);
+    if (!best || per > best.per) best = { per, label: offerLabel(d) };
+  }
+  return best;
+}
+async function loadUnits() {
+  UNITS = (await api("/admin/api/units")).units;
+  const g = $("#unitGrid");
+  if (!UNITS.length) { g.innerHTML = '<div class="empty">No units yet. Add your first unit.</div>'; return; }
+  g.innerHTML = UNITS.map(u => {
+    const o = bestOffer(u), cover = u.photos[0]?.url;
+    return `<article class="card unit">
+      <div class="cover" style="${cover ? `background-image:url('${cover}')` : ""}">${cover ? "" : "No photos yet"}<span class="num">${esc(u.code)}</span></div>
+      <div class="body">
+        <div class="row spread"><h3>${esc(u.name)}</h3><span class="pill ${u.active ? "live" : "hidden"}">${u.active ? "Live" : "Hidden"}</span></div>
+        <div class="meta">Block ${esc(u.block || "–")} · ${u.bedrooms} bedroom${u.bedrooms > 1 ? "s" : ""} · sleeps ${u.sleeps} · ${u.photos.length} photo${u.photos.length === 1 ? "" : "s"}</div>
+        <div class="price">${o ? `<s>${kes(u.price)}</s>${kes(u.price - o.per)}` : kes(u.price)} <span class="meta">/ night</span></div>
+        ${o ? `<div><span class="pill offer">${esc(o.label)}</span></div>` : ""}
+        <div><button class="btn btn-sm" data-edit="${u.id}">Edit unit &amp; photos</button></div>
+      </div></article>`;
+  }).join("");
+  fillUnitSelect();
+}
+$("#unitGrid").addEventListener("click", e => { const b = e.target.closest("[data-edit]"); if (b) openUnit(UNITS.find(u => u.id === Number(b.dataset.edit))); });
+$("#addUnit").addEventListener("click", () => openUnit(null));
+
+function openUnit(u) {
+  editing = u;
+  $("#drawerTitle").textContent = u ? `Edit ${u.name}` : "Add a unit";
+  $("#u-code").value = u?.code || ""; $("#u-code").disabled = !!u; $("#codeHint").hidden = !!u;
+  $("#u-name").value = u?.name || ""; $("#u-block").value = u?.block || "";
+  $("#u-price").value = u?.price ?? 2500; $("#u-bedrooms").value = u?.bedrooms ?? 1; $("#u-sleeps").value = u?.sleeps ?? 2;
+  $("#u-desc").value = u?.description || ""; $("#u-features").value = (u?.features || ["Fast Wi-Fi", "Smart TV: Netflix & YouTube"]).join(", ");
+  $("#u-sort").value = u?.sort ?? ""; $("#u-active").checked = u ? u.active : true;
+  $("#unitErr").textContent = ""; $("#deleteUnit").hidden = !u;
+  $("#photoBox").hidden = !u; $("#saveUnit").textContent = u ? "Save unit" : "Create unit";
+  renderPhotos();
+  $("#scrim").classList.add("open"); $("#drawer").classList.add("open");
+  (u ? $("#u-name") : $("#u-code")).focus();
+}
+function closeDrawer() { $("#scrim").classList.remove("open"); $("#drawer").classList.remove("open"); editing = null; }
+$("#closeDrawer").addEventListener("click", closeDrawer); $("#scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#drawer").classList.contains("open")) closeDrawer(); });
+$("#u-code").addEventListener("input", () => { if (!editing && !$("#u-name").dataset.touched) $("#u-name").value = $("#u-code").value ? "Suite " + $("#u-code").value : ""; });
+$("#u-name").addEventListener("input", () => $("#u-name").dataset.touched = "1");
+
+$("#saveUnit").addEventListener("click", async () => {
+  $("#unitErr").textContent = "";
+  const body = {
+    code: $("#u-code").value.trim(), name: $("#u-name").value, block: $("#u-block").value,
+    price: $("#u-price").value, bedrooms: $("#u-bedrooms").value, sleeps: $("#u-sleeps").value,
+    description: $("#u-desc").value, features: $("#u-features").value, sort: $("#u-sort").value, active: $("#u-active").checked
+  };
+  try {
+    const saved = editing ? await api(`/admin/api/units/${editing.id}`, { method: "PUT", json: body }) : await api("/admin/api/units", { method: "POST", json: body });
+    toast(editing ? "Unit saved" : "Unit created. Now add photos.");
+    await loadUnits();
+    openUnit(UNITS.find(u => u.id === saved.id));
+  } catch (err) { $("#unitErr").textContent = err.message; }
+});
+$("#deleteUnit").addEventListener("click", async () => {
+  if (!editing || !confirm(`Delete ${editing.name} and its photos? This can't be undone. To take it off the site temporarily, untick "Show on site" instead.`)) return;
+  try { await api(`/admin/api/units/${editing.id}`, { method: "DELETE" }); toast("Unit deleted"); closeDrawer(); loadUnits(); }
+  catch (err) { $("#unitErr").textContent = err.message; }
+});
+
+/* ---------------- photos */
+function renderPhotos() {
+  const ps = editing?.photos || [];
+  $("#photoCount").textContent = ps.length ? `${ps.length} photo${ps.length > 1 ? "s" : ""}` : "";
+  $("#photoList").innerHTML = ps.map((p, i) => `<div class="ph" data-id="${p.id}">
+    <img src="${p.url}" alt="${esc(p.caption || editing.name)}" loading="lazy">
+    <div class="ctl">${i === 0 ? '<span class="cover-tag">Cover photo</span>' : ""}
+      <input value="${esc(p.caption)}" placeholder="Caption, e.g. Bedroom" maxlength="140" data-caption="${p.id}" aria-label="Caption">
+      <div class="acts">${i ? `<button class="btn" data-cover="${p.id}">Make cover</button><button class="btn" data-left="${p.id}" aria-label="Move earlier">←</button>` : ""}${i < ps.length - 1 ? `<button class="btn" data-right="${p.id}" aria-label="Move later">→</button>` : ""}<button class="btn btn-danger" data-del="${p.id}">Delete</button></div>
+    </div></div>`).join("");
+}
+async function refreshEditing() { await loadUnits(); editing = UNITS.find(u => u.id === editing.id); renderPhotos(); }
+async function setOrder(ids) { await api(`/admin/api/units/${editing.id}/photo-order`, { method: "PUT", json: { ids } }); await refreshEditing(); }
+$("#photoList").addEventListener("click", async e => {
+  const ids = editing.photos.map(p => p.id), b = e.target.closest("button"); if (!b) return;
+  try {
+    if (b.dataset.del) { if (!confirm("Delete this photo?")) return; await api(`/admin/api/photos/${b.dataset.del}`, { method: "DELETE" }); await refreshEditing(); toast("Photo deleted"); }
+    const move = (id, d) => { const i = ids.indexOf(id); ids.splice(i, 1); ids.splice(d === "cover" ? 0 : i + d, 0, id); return ids; };
+    if (b.dataset.cover) await setOrder(move(Number(b.dataset.cover), "cover"));
+    if (b.dataset.left) await setOrder(move(Number(b.dataset.left), -1));
+    if (b.dataset.right) await setOrder(move(Number(b.dataset.right), 1));
+  } catch (err) { toast(err.message, true); }
+});
+$("#photoList").addEventListener("change", async e => {
+  const id = e.target.dataset.caption; if (!id) return;
+  try { await api(`/admin/api/photos/${id}`, { method: "PUT", json: { caption: e.target.value } }); toast("Caption saved"); const p = editing.photos.find(x => x.id === Number(id)); if (p) p.caption = e.target.value; }
+  catch (err) { toast(err.message, true); }
+});
+
+async function shrink(file) {
+  let bmp;
+  try { bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+  catch { throw new Error(`${file.name}: this file type can't be read. Use JPG, PNG or WebP.`); }
+  const max = 1600, scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  return new Promise(res => c.toBlob(res, "image/jpeg", 0.82));
+}
+async function upload(files) {
+  const list = [...files].filter(f => /^image\//.test(f.type));
+  if (!list.length) return;
+  let done = 0, failed = [];
+  for (const f of list) {
+    $("#uploading").textContent = `Uploading ${done + 1} of ${list.length}…`;
+    try {
+      const blob = await shrink(f);
+      const caption = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 140);
+      await api(`/admin/api/units/${editing.id}/photos?caption=${encodeURIComponent(caption)}`, { method: "POST", body: blob, headers: { "Content-Type": "image/jpeg" } });
+      done++;
+    } catch (err) { failed.push(err.message); }
+  }
+  $("#uploading").textContent = failed.length ? failed.join(" · ") : "";
+  await refreshEditing();
+  toast(`${done} photo${done === 1 ? "" : "s"} uploaded`, failed.length && !done);
+}
+const drop = $("#drop");
+drop.addEventListener("click", () => $("#files").click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#files").click(); } });
+$("#files").addEventListener("change", e => { upload(e.target.files); e.target.value = ""; });
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => upload(e.dataTransfer.files));
+
+/* ---------------- offers */
+function offerLabel(d) {
+  if (d.label) return d.label;
+  let s = d.kind === "percent" ? `${d.value}% off` : `${kes(d.value)} off per night`;
+  if (d.minNights > 1) s += ` for ${d.minNights}+ nights`;
+  return s;
+}
+const unitName = id => id == null ? "All units" : (UNITS.find(u => u.id === id)?.name || "Deleted unit");
+function fillUnitSelect() {
+  const sel = $("#o-unit"), cur = sel.value;
+  sel.innerHTML = `<option value="">All units</option>` + UNITS.map(u => `<option value="${u.id}">${esc(u.name)} (${kes(u.price)})</option>`).join("");
+  sel.value = cur;
+}
+async function loadOffers() {
+  OFFERS = (await api("/admin/api/discounts")).discounts;
+  const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+  $("#offerRows").innerHTML = OFFERS.length ? OFFERS.map(d => {
+    const ended = d.ends && d.ends < today, status = !d.active ? ["hidden", "Off"] : ended ? ["hidden", "Ended"] : ["live", "On"];
+    const cond = [d.minNights > 1 ? `${d.minNights}+ nights` : "Any length", d.starts || d.ends ? `stays starting ${d.starts || "now"} to ${d.ends || "no end"}` : "no date limit"].join(" · ");
+    return `<tr><td><b>${esc(offerLabel(d))}</b><div class="meta">${d.kind === "percent" ? `${d.value}% off the stay` : `${kes(d.value)} off per night`}</div></td>
+      <td>${esc(unitName(d.unitId))}</td><td class="meta">${esc(cond)}</td><td><span class="pill ${status[0]}">${status[1]}</span></td>
+      <td><div class="row"><button class="btn btn-sm" data-oedit="${d.id}">Edit</button><button class="btn btn-sm" data-otoggle="${d.id}">${d.active ? "Turn off" : "Turn on"}</button><button class="btn btn-sm btn-danger" data-odel="${d.id}">Delete</button></div></td></tr>`;
+  }).join("") : `<tr><td colspan="5" class="meta">No offers yet. Create one above.</td></tr>`;
+  if (!$("#tab-units").hidden) loadUnits();
+}
+function offerBody() {
+  return { unitId: $("#o-unit").value || null, kind: $("#o-kind").value, value: $("#o-value").value, minNights: $("#o-min").value || 1,
+    starts: $("#o-starts").value || null, ends: $("#o-ends").value || null, label: $("#o-label").value, active: $("#o-active").checked };
+}
+function previewOffer() {
+  const b = offerBody(), v = Number(b.value);
+  $("#o-value-label").textContent = b.kind === "percent" ? "Percent off" : "KES off per night";
+  $("#o-value").max = b.kind === "percent" ? 90 : 1000000;
+  const u = b.unitId ? UNITS.find(x => x.id === Number(b.unitId)) : UNITS[0];
+  if (!u || !v) { $("#offerPreview").textContent = ""; return; }
+  const n = Math.max(Number(b.minNights) || 1, 2), base = u.price * n;
+  const off = b.kind === "percent" ? Math.round(base * v / 100) : Math.min(base, v * n);
+  $("#offerPreview").textContent = `Example: ${u.name}, ${n} nights: ${kes(base)} → ${kes(base - off)} (guest saves ${kes(off)}).`;
+}
+["input", "change"].forEach(t => $("#offerForm").addEventListener(t, previewOffer));
+function resetOffer() { editingOffer = null; $("#offerForm").reset(); $("#o-min").value = 1; $("#o-active").checked = true; $("#offerTitle").textContent = "New offer"; $("#offerReset").hidden = true; $("#offerErr").textContent = ""; previewOffer(); }
+$("#offerReset").addEventListener("click", resetOffer);
+$("#offerForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("#offerErr").textContent = "";
+  try {
+    if (editingOffer) await api(`/admin/api/discounts/${editingOffer}`, { method: "PUT", json: offerBody() });
+    else await api("/admin/api/discounts", { method: "POST", json: offerBody() });
+    toast("Offer saved"); resetOffer(); loadOffers();
+  } catch (err) { $("#offerErr").textContent = err.message; }
+});
+$("#offerRows").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = OFFERS.find(x => x.id === Number(b.dataset.oedit || b.dataset.otoggle || b.dataset.odel));
+  try {
+    if (b.dataset.oedit) {
+      editingOffer = d.id; $("#offerTitle").textContent = "Edit offer"; $("#offerReset").hidden = false;
+      $("#o-unit").value = d.unitId ?? ""; $("#o-kind").value = d.kind; $("#o-value").value = d.value; $("#o-min").value = d.minNights;
+      $("#o-starts").value = d.starts || ""; $("#o-ends").value = d.ends || ""; $("#o-label").value = d.label; $("#o-active").checked = d.active;
+      previewOffer(); $("#offerForm").scrollIntoView({ behavior: "smooth" });
+    }
+    if (b.dataset.otoggle) { await api(`/admin/api/discounts/${d.id}`, { method: "PUT", json: { ...d, active: !d.active } }); toast(d.active ? "Offer turned off" : "Offer turned on"); loadOffers(); }
+    if (b.dataset.odel && confirm(`Delete "${offerLabel(d)}"?`)) { await api(`/admin/api/discounts/${d.id}`, { method: "DELETE" }); toast("Offer deleted"); loadOffers(); }
+  } catch (err) { toast(err.message, true); }
+});
+
+/* ---------------- bookings */
+async function loadBookings() {
+  const { bookings } = await api("/admin/api/bookings");
+  const fmt = s => new Date(s + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const nights = b => Math.round((Date.parse(b.out) - Date.parse(b.in)) / 864e5);
+  $("#bookingRows").innerHTML = bookings.length ? bookings.map(b => `<tr>
+    <td><span class="pill ${esc(b.status)}">${esc(b.status)}</span></td><td><b>${esc(b.ref)}</b></td><td>${esc(b.suite)}</td>
+    <td>${fmt(b.in)} → ${fmt(b.out)}<div class="meta">${nights(b)} night${nights(b) > 1 ? "s" : ""}</div></td>
+    <td>${esc(b.name)}${b.phone ? `<div class="meta"><a href="tel:+${esc(b.phone)}">+${esc(b.phone)}</a></div>` : ""}</td><td class="meta">${esc(b.source)}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="meta">No upcoming bookings.</td></tr>`;
+}
+$("#refreshBookings").addEventListener("click", loadBookings);
+
+/* ---------------- start */
+(async () => {
+  const me = await fetch("/admin/api/me", { credentials: "same-origin" }).then(r => r.json()).catch(() => ({}));
+  if (me.enabled === false) { showLogin(); $("#loginErr").textContent = "Admin is switched off. Set ADMIN_PASSWORD (10+ characters) in Hostinger's environment variables, then redeploy."; return; }
+  me.signedIn ? showApp() : showLogin();
+})();
+</script>
+</body>
+</html>

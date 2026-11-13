@@ -492,23 +492,20 @@ const CONFIG = {
   map: { query: "DAL Suits BnB, Nyarach Kobura, Rongo, Kenya", lat: -0.7351897, lng: 34.5943577,
          placeUrl: "https://www.google.com/maps/place/DAL+Suits+BnB/@-0.7351897,34.5943577,17z/data=!3m1!4b1!4m6!3m5!1s0x182b35002f1eeec9:0xdedea7058f7fc814!8m2!3d-0.7351897!4d34.5943577" },
   currency: "KES",
+  // Fallback only: the live site loads units, photos and prices from /api/units (managed at /admin).
   suites: [
-    { id:"110", block:"A", type:"Furnished suite", sleeps:2, rate:null,
-      desc:"Modern, stylish ground-floor suite with a queen bed, cozy sitting area and private bathroom. Perfect for couples.",
-      features:["Queen bed","Private bathroom","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
-      photos:[] },
-    { id:"123", block:"A", type:"Furnished suite", sleeps:2, rate:null,
-      desc:"Clean, spacious upper-floor suite with natural light and a work desk. Quiet and secluded, ideal for resting.",
-      features:["Queen bed","Work desk","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
-      photos:[] },
-    { id:"115", block:"B", type:"Furnished suite", sleeps:3, rate:null,
-      desc:"Spacious, cozy suite with a lounge and kitchenette. Perfect for families.",
-      features:["Kitchenette","Lounge","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
-      photos:[] },
-    { id:"117", block:"B", type:"Furnished suite", sleeps:3, rate:null,
-      desc:"Secluded corner suite with a kitchenette, made for rest and longer stays.",
-      features:["Kitchenette","Corner unit","Fast Wi-Fi","Smart TV: Netflix & YouTube","Hot shower"],
-      photos:[] }
+    { id:"110", block:"A", type:"1-bedroom suite", bedrooms:1, sleeps:2, rate:2500,
+      desc:"Modern, stylish one-bedroom suite with a cozy sitting area. Perfect for couples.",
+      features:["Fast Wi-Fi","Smart TV: Netflix & YouTube","Private bathroom"], photos:[] },
+    { id:"123", block:"A", type:"1-bedroom suite", bedrooms:1, sleeps:2, rate:2500,
+      desc:"Clean, spacious one-bedroom suite. Quiet and secluded, ideal for resting.",
+      features:["Fast Wi-Fi","Smart TV: Netflix & YouTube","Work desk"], photos:[] },
+    { id:"115", block:"B", type:"2-bedroom suite", bedrooms:2, sleeps:4, rate:5000,
+      desc:"Spacious, cozy two-bedroom suite. Perfect for families.",
+      features:["Fast Wi-Fi","Smart TV: Netflix & YouTube","Lounge"], photos:[] },
+    { id:"117", block:"B", type:"2-bedroom suite", bedrooms:2, sleeps:4, rate:5000,
+      desc:"Secluded two-bedroom corner suite, made for rest and longer stays.",
+      features:["Fast Wi-Fi","Smart TV: Netflix & YouTube","Corner unit"], photos:[] }
   ],
   blockPhotos: { A: [], B: [] }        // exterior / compound photos per block
 };
@@ -608,47 +605,80 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(a,b,w,h){this.rect(a,b,w,h)};
 }
 
+/* ---------- Live units from the backend ---------- */
+async function loadLive(){
+  try{
+    const r = await fetch("/api/units");
+    if(!r.ok) return;
+    const j = await r.json();
+    if(!j.units || !j.units.length) return;
+    CONFIG.live = true;
+    CONFIG.blockPhotos = {};
+    CONFIG.suites = j.units.map(u=>({ id:u.code, name:u.name, block:u.block||"", bedrooms:u.bedrooms,
+      type:u.bedrooms+"-bedroom suite", sleeps:u.sleeps, rate:u.price, offer:u.offer, desc:u.description,
+      features:u.features||[], photos:(u.photos||[]).map(p=>({src:p.url, caption:p.caption||u.name})) }));
+  }catch(e){ /* preview or offline: keep the built-in list */ }
+}
+const NUM_WORDS = ["No","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve"];
+const unitName = s => s.name || ("Suite "+s.id);
+function priceHTML(s){
+  if(!s.rate) return "Rate on request";
+  if(s.offer) return `<s style="color:var(--muted);font-weight:500">${money(s.rate)}</s> ${money(s.offer.nightly)} <small>/ night</small><br><span class="chip" style="background:#fbf1dc;border-color:#ecd9a8;color:#8a5a00">${esc(s.offer.label)}</span>`;
+  return money(s.rate)+' <small>/ night</small>';
+}
+
+function boot(){
+const BLOCKS = [...new Set(CONFIG.suites.map(s=>s.block||""))];
+const blockTitle = b => b ? "Block "+b : "More suites";
+const n = CONFIG.suites.length;
+if(n !== 4){
+  const w = (NUM_WORDS[n]||String(n));
+  document.querySelector(".hero h1").innerHTML = `${w} suite${n===1?"":"s"}. One quiet BnB in <em>Rongo</em>.`;
+  const stat = document.querySelector(".stats .stat b"); if(stat) stat.textContent = n;
+}
+
 /* ---------- Build photo list ---------- */
 const KIND_LABEL = {bedroom:"Bedroom", living:"Sitting area", bath:"Bathroom", kitchen:"Kitchenette", exterior:"Exterior"};
 const PHOTOS = [];
 let usingSamples = false;
 CONFIG.suites.forEach(s=>{
   if(s.photos.length){
-    s.photos.forEach(ph=>PHOTOS.push({src:ph.src||ph, cap:(ph.caption||"Suite "+s.id), tag:s.id, block:s.block}));
+    s.photos.forEach(ph=>PHOTOS.push({src:ph.src||ph, cap:(ph.caption ? unitName(s)+" · "+ph.caption : unitName(s)), tag:s.id, block:s.block}));
   } else {
     usingSamples = true;
-    const kinds = s.features.includes("Kitchenette") ? ["bedroom","living","kitchen","bath"] : ["bedroom","living","bath"];
-    kinds.forEach(k=>PHOTOS.push({src:drawScene(k,s.id), cap:"Suite "+s.id+" · "+KIND_LABEL[k], tag:s.id, block:s.block}));
+    const kinds = s.features.includes("Kitchenette") || s.bedrooms > 1 ? ["bedroom","living","kitchen","bath"] : ["bedroom","living","bath"];
+    const key = PALETTES[s.id] ? s.id : Object.keys(PALETTES)[CONFIG.suites.indexOf(s) % 4];
+    kinds.forEach(k=>PHOTOS.push({src:drawScene(k,key), cap:unitName(s)+" · "+KIND_LABEL[k], tag:s.id, block:s.block}));
   }
 });
-["A","B"].forEach(b=>{
-  const list = CONFIG.blockPhotos[b];
+(CONFIG.live ? [] : ["A","B"]).forEach(b=>{
+  const list = CONFIG.blockPhotos[b] || [];
   if(list.length) list.forEach(ph=>PHOTOS.push({src:ph.src||ph, cap:ph.caption||"Block "+b, tag:"ext", block:b}));
   else { usingSamples = true; PHOTOS.push({src:drawScene("exterior",b), cap:"Block "+b+" · Exterior", tag:"ext", block:b}); }
 });
 const photosFor = id => PHOTOS.filter(p=>p.tag===id);
 
 /* ---------- Hero plates ---------- */
-const plateHTML = (s, cls="") => `<a class="plate ${cls}" href="#suite-${s.id}"><span class="num">${esc(s.id)}</span><span class="meta"><span>Block ${esc(s.block)}</span><span>Sleeps ${s.sleeps}</span></span></a>`;
-$("#heroPlates").innerHTML = ["A","B"].map(b=>`<div class="block-col"><span class="block-label">Block ${b}</span>${CONFIG.suites.filter(s=>s.block===b).map(s=>plateHTML(s)).join("")}</div>`).join("");
+const plateHTML = (s, cls="") => `<a class="plate ${cls}" href="#suite-${s.id}"><span class="num">${esc(s.id)}</span><span class="meta"><span>${s.bedrooms ? s.bedrooms+" BR" : esc(blockTitle(s.block))}</span><span>Sleeps ${s.sleeps}</span></span></a>`;
+$("#heroPlates").innerHTML = BLOCKS.map(b=>`<div class="block-col"><span class="block-label">${esc(blockTitle(b))}</span>${CONFIG.suites.filter(s=>s.block===b).map(s=>plateHTML(s)).join("")}</div>`).join("");
 
 /* ---------- Suites ---------- */
-$("#suiteGroups").innerHTML = ["A","B"].map(b=>`
-  <div class="block-group"><h3>Block ${b}</h3><div class="suite-row">
+$("#suiteGroups").innerHTML = BLOCKS.map(b=>`
+  <div class="block-group"><h3>${esc(blockTitle(b))}</h3><div class="suite-row">
   ${CONFIG.suites.filter(s=>s.block===b).map(s=>{
     const ph = photosFor(s.id);
     return `<article class="suite" id="suite-${s.id}">
       <button class="suite-photo" data-open="${s.id}" aria-label="View photos of suite ${s.id}">
-        <img src="${ph[0]?.src||""}" alt="Suite ${s.id}">
+        <img src="${ph[0]?.src||""}" alt="${esc(unitName(s))}" loading="lazy">
         <span class="plate mini-plate"><span class="num">${esc(s.id)}</span></span>
-        <span class="count">${ph.length} photos</span>
+        <span class="count">${ph.length} photo${ph.length===1?"":"s"}</span>
       </button>
       <div class="suite-body">
-        <div><h3>Suite ${esc(s.id)}</h3><span class="type">${esc(s.type)} · Block ${esc(s.block)} · Sleeps ${s.sleeps}</span></div>
+        <div><h3>${esc(unitName(s))}</h3><span class="type">${esc(s.type)}${s.block ? " · Block "+esc(s.block) : ""} · Sleeps ${s.sleeps}</span></div>
         <p class="desc">${esc(s.desc)}</p>
         <div class="chips">${s.features.map(f=>`<span class="chip">${esc(f)}</span>`).join("")}</div>
         <div class="suite-foot">
-          <span class="rate">${s.rate ? money(s.rate)+' <small>/ night</small>' : 'Rate on request'}</span>
+          <span class="rate">${priceHTML(s)}</span>
           <span class="suite-actions">
             <button class="btn btn-ghost btn-sm" data-filter="${s.id}">Photos</button>
             <button class="btn btn-brass btn-sm" data-book="${s.id}">Book ${esc(s.id)}</button>
@@ -659,7 +689,7 @@ $("#suiteGroups").innerHTML = ["A","B"].map(b=>`
   </div></div>`).join("");
 
 /* ---------- Gallery ---------- */
-const FILTERS = [{k:"all",l:"All photos"}, ...CONFIG.suites.map(s=>({k:s.id,l:"Suite "+s.id})), {k:"ext",l:"Exterior"}];
+const FILTERS = [{k:"all",l:"All photos"}, ...CONFIG.suites.map(s=>({k:s.id,l:unitName(s)})), ...(PHOTOS.some(p=>p.tag==="ext") ? [{k:"ext",l:"Exterior"}] : [])];
 let current = "all", view = [];
 $("#filters").innerHTML = FILTERS.map(f=>`<button class="filter" data-f="${f.k}" aria-pressed="${f.k==="all"}">${f.l}</button>`).join("");
 function renderGrid(){
@@ -670,7 +700,7 @@ function renderGrid(){
 }
 $("#filters").addEventListener("click",e=>{const b=e.target.closest(".filter"); if(!b) return; current=b.dataset.f; renderGrid();});
 $("#grid").addEventListener("click",e=>{const b=e.target.closest("button[data-i]"); if(b) openLB(+b.dataset.i);});
-$("#galleryNote").textContent = usingSamples ? "Drawn sample images are shown until the real suite photos are added." : "";
+$("#galleryNote").textContent = usingSamples ? "Drawn sample images are shown for suites whose photos haven't been added yet." : "";
 renderGrid();
 
 /* ---------- Lightbox ---------- */
@@ -743,7 +773,7 @@ $("#yr").textContent = new Date().getFullYear();
 /* ---------- Booking ---------- */
 const pick=$("#suitePick");
 pick.innerHTML = `<input type="radio" name="suite" id="pick-any" value="any" checked><label for="pick-any"><b style="font-size:1.05rem;font-family:var(--body);font-stretch:100%">Any</b><small>first free</small></label>` +
-  CONFIG.suites.map(s=>`<input type="radio" name="suite" id="pick-${s.id}" value="${s.id}"><label for="pick-${s.id}"><b>${s.id}</b><small>Block ${s.block}</small></label>`).join("");
+  CONFIG.suites.map(s=>`<input type="radio" name="suite" id="pick-${s.id}" value="${s.id}"><label for="pick-${s.id}"><b>${esc(s.id)}</b><small>${s.bedrooms ? s.bedrooms+" bedroom"+(s.bedrooms>1?"s":"") : esc(blockTitle(s.block))}</small></label>`).join("");
 const iso = d => d.toISOString().slice(0,10);
 const today = new Date(); today.setHours(12,0,0,0);
 $("#checkin").min = iso(today);
@@ -751,15 +781,30 @@ const addDays=(s,n)=>{const d=new Date(s+"T12:00:00"); d.setDate(d.getDate()+n);
 const nightsBetween=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
 const fmt = s => new Date(s+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 function chosenSuite(){ const v=document.querySelector('input[name="suite"]:checked').value; return v==="any"?null:CONFIG.suites.find(s=>s.id===v); }
+let quoteSeq = 0;
 function updateSummary(){
   const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
-  $("#sSuite").textContent = s ? "Suite "+s.id+" · Block "+s.block : "Any available";
+  $("#sSuite").textContent = s ? unitName(s)+(s.block ? " · Block "+s.block : "") : "Any available";
   $("#sGuests").textContent = $("#guests").value;
   const n = (a&&b) ? nightsBetween(a,b) : 0;
   $("#sDates").textContent = a&&b&&n>0 ? fmt(a)+" → "+fmt(b) : "Choose dates";
   $("#sNights").textContent = n>0 ? n : "–";
-  if(n>0 && s && s.rate){ $("#sTotal").textContent = money(s.rate*n); $("#sNote").textContent = money(s.rate)+" × "+n+" night"+(n>1?"s":"")+". Final amount confirmed by the host."; }
-  else { $("#sTotal").textContent = "On request"; $("#sNote").textContent = "We confirm the rate and payment details (M-Pesa or cash) when we reply to your request."; }
+  const note = "Final amount confirmed by the host when we reply.";
+  if(!s){
+    const rates = CONFIG.suites.map(x=>x.offer ? x.offer.nightly : x.rate).filter(Boolean);
+    $("#sTotal").textContent = rates.length ? "From "+money(Math.min(...rates))+" / night" : "On request";
+    $("#sNote").textContent = "Pick a suite to see the exact total. "+note; return;
+  }
+  if(!(n>0) || !s.rate){ $("#sTotal").textContent = s.rate ? money(s.offer ? s.offer.nightly : s.rate)+" / night" : "On request"; $("#sNote").textContent = s.offer ? s.offer.label+". "+note : note; return; }
+  $("#sTotal").textContent = money(s.rate*n);
+  $("#sNote").textContent = money(s.rate)+" × "+n+" night"+(n>1?"s":"")+". "+note;
+  if(!CONFIG.live) return;
+  const seq = ++quoteSeq;
+  fetch(`/api/quote?unit=${encodeURIComponent(s.id)}&in=${a}&out=${b}`).then(r=>r.ok?r.json():null).then(q=>{
+    if(!q || seq!==quoteSeq) return;
+    $("#sTotal").textContent = money(q.total);
+    $("#sNote").textContent = money(q.nightly)+" × "+q.nights+" night"+(q.nights>1?"s":"")+(q.discount ? " = "+money(q.base)+", minus "+q.discount.label+" ("+money(q.discount.amount)+")" : "")+". "+note;
+  }).catch(()=>{});
 }
 $("#checkin").addEventListener("change",()=>{ const a=$("#checkin").value; if(a){ $("#checkout").min=addDays(a,1); if(!$("#checkout").value || $("#checkout").value<=a) $("#checkout").value=addDays(a,1);} updateSummary(); });
 ["checkout","guests"].forEach(id=>$("#"+id).addEventListener("change",updateSummary));
@@ -785,7 +830,7 @@ $("#bookForm").addEventListener("submit",e=>{
   const ref="DAL-"+a.replace(/-/g,"").slice(2)+"-"+Math.random().toString(36).slice(2,5).toUpperCase();
   lastText = [
     "Booking request "+ref,
-    "Suite: "+(s?("Suite "+s.id+" (Block "+s.block+")"):"Any available suite"),
+    "Suite: "+(s?("Suite "+s.id+(s.block ? " (Block "+s.block+")" : "")):"Any available suite"),
     "Check-in: "+fmt(a)+" ("+$("#arrival").value.toLowerCase()+")",
     "Check-out: "+fmt(b)+" ("+n+" night"+(n>1?"s":"")+")",
     "Guests: "+$("#guests").value,
@@ -808,6 +853,9 @@ $("#copyBtn").addEventListener("click",async()=>{
   setTimeout(()=>$("#copyBtn").textContent="Copy details",2500);
 });
 updateSummary();
+} // end boot
+
+loadLive().then(boot);
 
 /* ---------- Mobile menu ---------- */
 $("#menuBtn").addEventListener("click",()=>{ const o=$("#navLinks").classList.toggle("open"); $("#menuBtn").setAttribute("aria-expanded",o); });
