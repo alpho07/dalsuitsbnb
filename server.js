@@ -36,7 +36,9 @@ app.get("/api/whatsapp", handle(whatsappGET));
 app.post("/api/whatsapp", express.raw({ type: "*/*", limit: "1mb" }), handle(whatsappPOST)); // raw body for signature check
 app.get("/api/availability", handle(availabilityGET));
 
-app.use(express.static(join(here, "public"), { maxAge: "1h", index: "index.html" }));
+// Old-style links like /bnb-rongo.html redirect to the clean URL so Google sees one address per page.
+app.get(/^\/(.+)\.html$/, (req, res, next) => req.params[0] === "index" ? res.redirect(301, "/") : res.redirect(301, "/" + req.params[0]));
+app.use(express.static(join(here, "public"), { maxAge: "1h", index: "index.html", extensions: ["html"] }));
 app.use((req, res) => res.status(404).sendFile(join(here, "public", "index.html")));
 
 app.listen(PORT, () => console.log(`DAL Suits BnB listening on ${PORT} (storage: ${storageMode})`));
