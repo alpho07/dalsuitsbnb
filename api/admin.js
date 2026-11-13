@@ -2,7 +2,8 @@
 import express from "express";
 import { login, logout, requireAdmin, isSignedIn, adminEnabled } from "../lib/auth.js";
 import * as U from "../lib/units.js";
-import { upcoming } from "../lib/store.js";
+import { upcoming, storageMode } from "../lib/store.js";
+import { missingDbVars, envFilesLoaded } from "../lib/env.js";
 import { quote } from "../lib/pricing.js";
 
 export const admin = express.Router();
@@ -80,9 +81,21 @@ async function discountInput(b) {
 
 admin.post("/admin/api/login", json, login);
 admin.post("/admin/api/logout", logout);
-admin.get("/admin/api/me", (req, res) => res.json({ signedIn: isSignedIn(req), enabled: adminEnabled() }));
+const memoryOk = () => storageMode !== "memory" || process.env.ALLOW_MEMORY_STORAGE === "1";
+admin.get("/admin/api/me", (req, res) => {
+  const signedIn = isSignedIn(req);
+  res.json({ signedIn, enabled: adminEnabled(), ...(signedIn && {
+    storage: storageMode, canSave: memoryOk(), missing: storageMode === "mysql" ? [] : missingDbVars(), envFiles: envFilesLoaded
+  }) });
+});
 
 admin.use("/admin/api", requireAdmin);
+// Without a database every change lives in memory and vanishes on the next restart or redeploy.
+// Refuse changes rather than let photos and prices disappear silently.
+admin.use("/admin/api", (req, res, next) => {
+  if (req.method === "GET" || memoryOk()) return next();
+  res.status(503).json({ error: "The database is not connected, so nothing can be saved (it would be lost on the next redeploy). Missing: " + missingDbVars().join(", ") + ". See README: Database." });
+});
 const h = fn => async (req, res, next) => { try { await fn(req, res); } catch (e) { next(e); } };
 
 /* ----------------------------------------------------------------- units */

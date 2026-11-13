@@ -2,16 +2,19 @@
 import { processWebhook } from "../lib/bot.js";
 import { validSignature, DRY } from "../lib/wa.js";
 import { storageMode, ping } from "../lib/store.js";
+import { missingDbVars, envFilesLoaded } from "../lib/env.js";
 
 export async function GET(request) {
   const u = new URL(request.url);
   if (u.searchParams.get("health") !== null) {
     let db = "ok";
-    try { await ping(); } catch (e) { db = "error: " + e.message; }
+    if (storageMode === "mysql") try { await ping(); } catch (e) { db = "error: " + e.message; }
     return Response.json({
-      ok: db === "ok",
+      ok: storageMode !== "memory" && db === "ok",
       storage: storageMode,                       // "mysql" on Hostinger, "redis" on Vercel; never "memory" in production
-      database: db,
+      database: storageMode === "mysql" ? db : "not configured",
+      missing: storageMode === "mysql" ? [] : missingDbVars(),
+      envFiles: envFilesLoaded,
       whatsapp: DRY ? "dry-run (WA_TOKEN missing)" : (process.env.WA_PROVIDER || "meta"),
       phoneNumberId: !!process.env.WA_PHONE_NUMBER_ID,
       verifyToken: !!process.env.WA_VERIFY_TOKEN,

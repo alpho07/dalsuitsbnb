@@ -21,6 +21,23 @@ and suite availability at `/api/availability`. Bookings are stored in MySQL.
 7. Point the WhatsApp webhook to `https://dalsuitsbnb.com/api/whatsapp` with the
    same `WA_VERIFY_TOKEN`, subscribed to `messages`.
 
+## Database (photos must survive redeploys)
+
+Photos, units, prices, offers and bookings live in MySQL. If the database settings are
+missing, the app runs in memory: everything disappears on the next restart or redeploy, so
+the admin shows a red banner and refuses to save. Check `/api/whatsapp?health`: it must say
+`"storage":"mysql"` and `"database":"ok"`.
+
+Give the app `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (and `DB_PORT` if not 3306) in one of:
+
+- **hPanel > your Node.js app > Environment variables** (preferred), or
+- a file named `dalsuits.env` in your **home folder** (the top level in File Manager, not inside
+  the app or `public_html`). It survives redeploys because it is outside the deployed folder.
+  Same `KEY=value` format as `.env.example`. hPanel variables win if both are set.
+
+A `.env` inside the app folder is also read, but a GitHub redeploy replaces that folder, so
+don't rely on it in production. For local testing without MySQL set `ALLOW_MEMORY_STORAGE=1`.
+
 ## Admin dashboard
 
 Open `https://dalsuitsbnb.com/admin` and sign in with `ADMIN_PASSWORD`.

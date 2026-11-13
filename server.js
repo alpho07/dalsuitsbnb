@@ -1,4 +1,5 @@
 // DAL Suits BnB: website + WhatsApp booking bot, as one Express app for Hostinger Node.js hosting.
+import "./lib/env.js"; // must stay first: loads ~/dalsuits.env before anything reads process.env
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -52,4 +53,7 @@ app.get("/og-image.png", (req, res) => res.redirect(301, "/og-image.jpg"));
 app.use(express.static(join(here, "public"), { maxAge: "1h", index: "index.html", extensions: ["html"] }));
 app.use((req, res) => res.status(404).sendFile(join(here, "public", "index.html")));
 
-app.listen(PORT, () => console.log(`DAL Suits BnB listening on ${PORT} (storage: ${storageMode})`));
+app.listen(PORT, () => {
+  console.log(`DAL Suits BnB listening on ${PORT} (storage: ${storageMode})`);
+  if (storageMode === "memory") console.warn("WARNING: no database configured. Photos, units, offers and bookings are kept in memory and LOST on every restart or redeploy. Set DB_HOST, DB_NAME, DB_USER, DB_PASSWORD.");
+});

@@ -78,6 +78,7 @@ textarea{min-height:80px;resize:vertical}input:focus,select:focus,textarea:focus
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .login .card{padding:28px;width:min(380px,100%);display:grid;gap:14px}
 .err{color:var(--err);font-size:.85rem;min-height:1em}
+.dbwarn{background:var(--err-bg);color:var(--err);border-bottom:1px solid #e3b9ae;padding:12px 20px;font-size:.92rem;line-height:1.45}.dbwarn b{display:block;font-size:1rem;margin-bottom:2px}.dbwarn code{background:#fff;padding:1px 5px;border-radius:4px}
 .empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:14px}
 </style>
 </head>
@@ -103,6 +104,7 @@ textarea{min-height:80px;resize:vertical}input:focus,select:focus,textarea:focus
     <a class="btn btn-sm" href="/" target="_blank" rel="noopener">View site</a>
     <button class="btn btn-sm" id="logout">Sign out</button>
   </div></div>
+  <div class="dbwarn" id="dbWarn" role="alert" hidden></div>
 
   <main>
     <section id="tab-units">
@@ -195,7 +197,17 @@ async function api(path, opts = {}) {
 
 /* ---------------- session */
 function showLogin() { $("#appView").hidden = true; $("#loginView").hidden = false; $("#pw").focus(); }
-async function showApp() { $("#loginView").hidden = true; $("#appView").hidden = false; await loadUnits(); await loadOffers(); }
+async function showApp() { $("#loginView").hidden = true; $("#appView").hidden = false; await checkStorage(); await loadUnits(); await loadOffers(); }
+async function checkStorage() {
+  const me = await fetch("/admin/api/me", { credentials: "same-origin" }).then(r => r.json()).catch(() => ({}));
+  const w = $("#dbWarn");
+  if (!me.storage || me.storage === "mysql") { w.hidden = true; return; }
+  w.innerHTML = `<b>Database not connected: nothing you change here is being kept.</b>`
+    + (me.canSave ? "Test mode: changes are held in memory and disappear on the next restart or redeploy. " : "Saving is switched off until the database is connected, so photos and prices can't vanish on the next redeploy. ")
+    + (me.missing?.length ? `Missing settings: ${me.missing.map(k => `<code>${k}</code>`).join(" ")}. ` : "")
+    + "Add them in hPanel (Environment variables) or in <code>dalsuits.env</code> in your home folder, then redeploy.";
+  w.hidden = false;
+}
 $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault(); $("#loginErr").textContent = "";
   try { await api("/admin/api/login", { method: "POST", json: { password: $("#pw").value } }); $("#pw").value = ""; showApp(); }
