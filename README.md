@@ -25,13 +25,13 @@ and suite availability at `/api/availability`. Bookings are stored in MySQL.
 
 Open `https://dalsuitsbnb.com/admin` and sign in with `ADMIN_PASSWORD`.
 
-- **Units:** add, edit, hide or delete suites; set bedrooms, guests, price per night (KES).
+- **Units:** add, edit, hide or delete suites; set bedrooms, guests, the whole-unit price and an optional 1-bedroom price (KES per night).
 - **Photos:** upload per unit (resized in the browser, stored in MySQL), add captions, reorder, choose the cover.
 - **Offers:** percent off the stay or KES off per night, for one unit or all, with optional minimum nights and date window. Guests get the single best offer.
 - **Bookings:** upcoming bookings from WhatsApp and the website.
 
 The website and the WhatsApp bot read units, prices and offers from the database, so changes show within a minute.
-On first run the database is filled with Suites 110 and 123 (1 bedroom, KES 2,500) and 115 and 117 (2 bedrooms, KES 5,000).
+On first run the database is filled with Suites 110, 123, 115 and 117: each has 2 bedrooms and can be booked as 1 bedroom (KES 2,500, 2 guests) or the whole suite (KES 5,000, 4 guests). A 1-bedroom booking keeps the suite private. Databases from an earlier version are upgraded automatically on start (or run `database/migrations/` by hand).
 
 ## Editing
 

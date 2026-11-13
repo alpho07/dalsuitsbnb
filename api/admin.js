@@ -34,13 +34,19 @@ function unitInput(b, creating) {
     block: str(b.block, 16, "Block"),
     bedrooms: int(b.bedrooms, 1, 10, "Bedrooms"),
     sleeps: int(b.sleeps, 1, 20, "Sleeps"),
-    price: int(b.price, 0, 1000000, "Price per night"),
+    price: int(b.price, 0, 1000000, "Whole-unit price per night"),
+    roomPrice: b.roomPrice == null || b.roomPrice === "" ? null : int(b.roomPrice, 0, 1000000, "1-bedroom price per night"),
+    roomSleeps: b.roomSleeps == null || b.roomSleeps === "" ? null : int(b.roomSleeps, 1, 20, "Guests for 1 bedroom"),
     description: str(b.description, 1000, "Description"),
     features: (Array.isArray(b.features) ? b.features : String(b.features || "").split(","))
       .map(f => String(f).trim()).filter(Boolean).slice(0, 12).map(f => f.slice(0, 40)),
     active: b.active !== false,
     sort: b.sort == null || b.sort === "" ? undefined : int(b.sort, 0, 9999, "Order")
   };
+  if (u.roomPrice != null && u.bedrooms < 2) throw fail(400, "A 1-bedroom price only applies to units with 2 or more bedrooms.");
+  if (u.roomPrice != null && u.roomPrice >= u.price) throw fail(400, "The 1-bedroom price should be lower than the whole-unit price.");
+  if (u.roomPrice != null && !u.roomSleeps) u.roomSleeps = Math.max(1, Math.min(2, u.sleeps));
+  if (u.roomPrice == null) u.roomSleeps = null;
   if (creating) {
     u.code = str(b.code, 12, "Unit number", { required: true });
     if (!/^[A-Za-z0-9-]+$/.test(u.code)) throw fail(400, "Unit number can use letters, digits and hyphens only.");
@@ -64,7 +70,8 @@ async function discountInput(b) {
   if (d.unitId != null) {
     const u = await U.getUnit(d.unitId);
     if (!u) throw fail(400, "That unit no longer exists.");
-    if (kind === "amount" && d.value >= u.price) throw fail(400, `The amount off must be less than the unit's price (KES ${u.price}).`);
+    const lowest = Math.min(u.price, u.roomPrice || u.price);
+    if (kind === "amount" && d.value >= lowest) throw fail(400, `The amount off must be less than the unit's lowest price (KES ${lowest}).`);
   }
   return d;
 }
@@ -115,7 +122,7 @@ admin.get("/admin/api/bookings", h(async (req, res) => res.json({ bookings: awai
 admin.get("/admin/api/quote", h(async (req, res) => {
   const u = await U.getUnit(req.query.unitId);
   if (!u) throw fail(404, "Unit not found.");
-  res.json(quote(u, await U.listDiscounts({ activeOnly: true }), req.query.in, req.query.out));
+  res.json(quote(u, await U.listDiscounts({ activeOnly: true }), req.query.in, req.query.out, req.query.option));
 }));
 
 /* ---------------------------------------------------------------- errors */

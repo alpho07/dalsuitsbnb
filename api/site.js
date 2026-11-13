@@ -16,15 +16,16 @@ site.get("/api/units", async (req, res, next) => {
     res.json({
       units: units.map(u => ({
         id: u.id, code: u.code, name: u.name, block: u.block, bedrooms: u.bedrooms, sleeps: u.sleeps,
-        price: u.price, description: u.description, features: u.features,
+        price: u.price, roomPrice: u.roomPrice, roomSleeps: u.roomSleeps, description: u.description, features: u.features,
         photos: u.photos.map(p => ({ url: p.url, caption: p.caption })),
-        offer: offer(u, discounts, t)
+        offer: offer(u, discounts, t),
+        roomOffer: u.roomPrice ? offer({ id: u.id, price: u.roomPrice }, discounts, t) : null
       }))
     });
   } catch (e) { next(e); }
 });
 
-// GET /api/quote?unit=110&in=2026-12-20&out=2026-12-22 -> price with the best discount
+// GET /api/quote?unit=110&in=2026-12-20&out=2026-12-22&option=room|suite -> price with the best discount
 site.get("/api/quote", async (req, res, next) => {
   try {
     const { unit: code, in: a, out: b } = req.query;
@@ -33,7 +34,7 @@ site.get("/api/quote", async (req, res, next) => {
     const u = units.find(x => x.code === String(code));
     if (!u) return res.status(404).json({ error: "Unknown unit." });
     res.set("Cache-Control", "no-store");
-    res.json({ unit: u.code, ...quote(u, discounts, a, b) });
+    res.json({ unit: u.code, ...quote(u, discounts, a, b, req.query.option === "room" ? "room" : "suite") });
   } catch (e) { next(e); }
 });
 

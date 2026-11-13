@@ -3,7 +3,9 @@
 -- You don't have to run this: the app creates these tables itself on first start
 -- (lib/store.js and lib/units.js), and every statement is "IF NOT EXISTS" / "INSERT IGNORE",
 -- so running it on an existing database changes nothing.
--- Use it to set up the database ahead of time in phpMyAdmin (Import), or as a reference.
+-- Use it to set up a NEW database ahead of time in phpMyAdmin (Import), or as a reference.
+-- Upgrading a database created from an earlier version? Run the files in database/migrations/ in order
+-- (the app also applies them automatically on start).
 -- Keep it in step with the CREATE TABLE statements in lib/store.js and lib/units.js.
 
 SET NAMES utf8mb4;
@@ -36,7 +38,7 @@ CREATE TABLE IF NOT EXISTS dal_bookings (
   INDEX (check_in), INDEX (status), INDEX (expires_at)
 ) CHARACTER SET utf8mb4;
 
--- Units (suites) managed at /admin
+-- Units (suites) managed at /admin. A 1-bedroom booking still keeps the whole unit private.
 CREATE TABLE IF NOT EXISTS dal_units (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   code        VARCHAR(16)  NOT NULL UNIQUE,      -- unit number shown to guests, e.g. 110
@@ -44,7 +46,9 @@ CREATE TABLE IF NOT EXISTS dal_units (
   block       VARCHAR(16)  NOT NULL DEFAULT '',
   bedrooms    TINYINT      NOT NULL DEFAULT 1,
   sleeps      TINYINT      NOT NULL DEFAULT 2,
-  price       INT          NOT NULL DEFAULT 0,   -- KES per night
+  price       INT          NOT NULL DEFAULT 0,   -- KES per night, whole unit
+  room_price  INT          NULL,                 -- KES per night for 1 bedroom only (NULL = not offered)
+  room_sleeps TINYINT      NULL,                 -- guests allowed on a 1-bedroom booking
   description TEXT,
   features    TEXT,                              -- JSON array of strings
   active      TINYINT      NOT NULL DEFAULT 1,   -- 0 = hidden from site and WhatsApp
@@ -80,9 +84,10 @@ CREATE TABLE IF NOT EXISTS dal_discounts (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) CHARACTER SET utf8mb4;
 
--- Starting units (same as SEED_UNITS in lib/config.js); skipped if the numbers already exist
-INSERT IGNORE INTO dal_units (code, name, block, bedrooms, sleeps, price, description, features, sort) VALUES
-  ('110', 'Suite 110', 'A', 1, 2, 2500, 'Modern, stylish one-bedroom suite with a cozy sitting area. Perfect for couples.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Private bathroom"]', 1),
-  ('123', 'Suite 123', 'A', 1, 2, 2500, 'Clean, spacious one-bedroom suite. Quiet and secluded, ideal for resting.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Work desk"]', 2),
-  ('115', 'Suite 115', 'B', 2, 4, 5000, 'Spacious, cozy two-bedroom suite. Perfect for families.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Lounge"]', 3),
-  ('117', 'Suite 117', 'B', 2, 4, 5000, 'Secluded two-bedroom corner suite, made for rest and longer stays.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Corner unit"]', 4);
+-- Starting units (same as SEED_UNITS in lib/config.js); skipped if the numbers already exist.
+-- Every suite has 2 bedrooms: whole suite KES 5,000 (4 guests) or 1 bedroom KES 2,500 (2 guests).
+INSERT IGNORE INTO dal_units (code, name, block, bedrooms, sleeps, price, room_price, room_sleeps, description, features, sort) VALUES
+  ('110', 'Suite 110', 'A', 2, 4, 5000, 2500, 2, 'Modern, stylish two-bedroom suite with a cozy sitting area. Book one bedroom or the whole suite.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Private bathroom"]', 1),
+  ('123', 'Suite 123', 'A', 2, 4, 5000, 2500, 2, 'Clean, spacious two-bedroom suite. Quiet and secluded, ideal for resting.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Work desk"]', 2),
+  ('115', 'Suite 115', 'B', 2, 4, 5000, 2500, 2, 'Spacious, cozy two-bedroom suite. Perfect for families.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Lounge"]', 3),
+  ('117', 'Suite 117', 'B', 2, 4, 5000, 2500, 2, 'Secluded two-bedroom corner suite, made for rest and longer stays.', '["Fast Wi-Fi","Smart TV: Netflix & YouTube","Corner unit"]', 4);
