@@ -383,7 +383,7 @@ footer a{color:#fff;text-decoration:none}
   <div class="wrap">
     <p class="kicker">Book a stay</p>
     <h2>Send a booking request.</h2>
-    <p class="lede">Fill in your dates and pick a suite. We confirm availability and payment details with you on WhatsApp or by phone, usually within the hour.</p>
+    <p class="lede">Fill in your dates, pick a suite and add your details. WhatsApp then opens with your booking request written out: just tap send. We confirm availability and payment with you, usually within the hour.</p>
     <div class="book-grid">
       <form class="book" id="bookForm" novalidate>
         <div class="field full">
@@ -400,12 +400,12 @@ footer a{color:#fff;text-decoration:none}
         <div class="field"><label for="phone">Phone (WhatsApp)</label><input id="phone" type="tel" autocomplete="tel" placeholder="07XX XXX XXX" required><span class="err" id="e-phone"></span></div>
         <div class="field full"><label for="email">Email (optional)</label><input id="email" type="email" autocomplete="email"><span class="err" id="e-email"></span></div>
         <div class="field full"><label for="notes">Anything we should know?</label><textarea id="notes" placeholder="e.g. travelling for a graduation, need early check-in, staying for work"></textarea></div>
-        <div class="field full"><button class="btn btn-brass" type="submit" style="width:100%">Prepare my booking request</button></div>
+        <div class="field full"><button class="btn btn-brass" type="submit" style="width:100%">Send booking request on WhatsApp</button></div>
         <div class="confirm" id="confirm" aria-live="polite">
           <div><span class="small">Booking request</span><div class="ref" id="ref"></div></div>
-          <p>Your request is ready. Send it to us with one tap below; your booking is confirmed once we reply.</p>
+          <p id="confirmMsg">WhatsApp should have opened with your request. Tap send there; your booking is confirmed once we reply. If it didn't open, use the button below.</p>
           <div class="row">
-            <a class="btn btn-ink btn-sm" id="waSend" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+            <a class="btn btn-ink btn-sm" id="waSend" href="#" target="_blank" rel="noopener">Open WhatsApp again</a>
             <a class="btn btn-ghost btn-sm" id="mailSend" href="#">Send by email</a>
             <button class="btn btn-ghost btn-sm" type="button" id="copyBtn">Copy details</button>
           </div>
@@ -781,7 +781,7 @@ const addDays=(s,n)=>{const d=new Date(s+"T12:00:00"); d.setDate(d.getDate()+n);
 const nightsBetween=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
 const fmt = s => new Date(s+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 function chosenSuite(){ const v=document.querySelector('input[name="suite"]:checked').value; return v==="any"?null:CONFIG.suites.find(s=>s.id===v); }
-let quoteSeq = 0;
+let quoteSeq = 0, lastQuote = null;
 function updateSummary(){
   const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
   $("#sSuite").textContent = s ? unitName(s)+(s.block ? " · Block "+s.block : "") : "Any available";
@@ -802,6 +802,7 @@ function updateSummary(){
   const seq = ++quoteSeq;
   fetch(`/api/quote?unit=${encodeURIComponent(s.id)}&in=${a}&out=${b}`).then(r=>r.ok?r.json():null).then(q=>{
     if(!q || seq!==quoteSeq) return;
+    lastQuote = { key: s.id+"|"+a+"|"+b, total: q.total, base: q.base, discount: q.discount };
     $("#sTotal").textContent = money(q.total);
     $("#sNote").textContent = money(q.nightly)+" × "+q.nights+" night"+(q.nights>1?"s":"")+(q.discount ? " = "+money(q.base)+", minus "+q.discount.label+" ("+money(q.discount.amount)+")" : "")+". "+note;
   }).catch(()=>{});
@@ -823,29 +824,54 @@ function validate(){
   return ok;
 }
 let lastText="";
-$("#bookForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  if(!validate()){ const f=document.querySelector(".err:not(:empty)"); f && f.previousElementSibling && f.previousElementSibling.focus(); return; }
+function priceLineFor(s, a, b, n){
+  if(!s || !s.rate) return null;
+  const q = lastQuote && lastQuote.key === s.id+"|"+a+"|"+b ? lastQuote : null;
+  if(q) return "Estimated total: "+money(q.total)+(q.discount ? " ("+q.discount.label+", you save "+money(q.discount.amount)+")" : " ("+money(s.rate)+" x "+n+" night"+(n>1?"s":"")+")");
+  return "Estimated total: "+money(s.rate*n)+" ("+money(s.rate)+" x "+n+" night"+(n>1?"s":"")+")";
+}
+function buildMessage(ref){
   const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value, n=nightsBetween(a,b);
-  const ref="DAL-"+a.replace(/-/g,"").slice(2)+"-"+Math.random().toString(36).slice(2,5).toUpperCase();
-  lastText = [
-    "Booking request "+ref,
-    "Suite: "+(s?("Suite "+s.id+(s.block ? " (Block "+s.block+")" : "")):"Any available suite"),
+  const email=$("#email").value.trim(), notes=$("#notes").value.trim().replace(/\s+/g," ");
+  const suiteLine = s ? "Suite "+s.id+(s.block ? " (Block "+s.block+")" : "")+(s.bedrooms ? " · "+s.bedrooms+" bedroom"+(s.bedrooms>1?"s":"") : "") : "Any available suite";
+  return [
+    "Hello DAL Suits BnB, I'd like to book.",
+    "",
+    "*Booking request "+ref+"*",
+    "Suite: "+suiteLine,
     "Check-in: "+fmt(a)+" ("+$("#arrival").value.toLowerCase()+")",
     "Check-out: "+fmt(b)+" ("+n+" night"+(n>1?"s":"")+")",
     "Guests: "+$("#guests").value,
+    priceLineFor(s, a, b, n),
     "Name: "+$("#name").value.trim(),
     "Phone: "+$("#phone").value.trim(),
-    $("#email").value.trim() ? "Email: "+$("#email").value.trim() : "",
-    $("#notes").value.trim() ? "Notes: "+$("#notes").value.trim() : ""
-  ].filter(Boolean).join("\n");
+    email ? "Email: "+email : null,
+    notes ? "Notes: "+notes : null,
+    "",
+    "Please confirm availability. Thank you!"
+  ].filter(line => line !== null).join("\n");
+}
+function openWhatsApp(url){
+  // Open straight away while the tap still counts as a user action (popup blockers allow it).
+  const w = window.open(url, "_blank");
+  if(w){ try{ w.opener = null; }catch(e){} return true; }
+  try{ window.location.href = url; return true; }catch(e){ return false; }
+}
+$("#bookForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!validate()){ const f=document.querySelector(".err:not(:empty)"); f && f.previousElementSibling && f.previousElementSibling.focus(); return; }
+  const a=$("#checkin").value;
+  const ref="DAL-"+a.replace(/-/g,"").slice(2)+"-"+Math.random().toString(36).slice(2,5).toUpperCase();
+  lastText = buildMessage(ref);
+  const url = waHref(lastText);
   $("#ref").textContent = ref;
-  $("#waSend").href = waHref("Hello DAL Suits BnB, I'd like to book.\n\n"+lastText);
-  if(CONFIG.email){ $("#mailSend").href = "mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Booking request "+ref)+"&body="+encodeURIComponent(lastText); }
+  $("#waSend").href = url;
+  if(CONFIG.email){ $("#mailSend").href = "mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Booking request "+ref)+"&body="+encodeURIComponent(lastText.replace(/\*/g,"")); }
   else { $("#mailSend").style.display="none"; }
   $("#confirmContacts").textContent = "If WhatsApp doesn't open, copy the details and send them to "+waDisplay+", or call "+CONFIG.phones.join(" / ")+".";
   $("#confirm").classList.add("show");
   $("#confirm").scrollIntoView({block:"nearest"});
+  openWhatsApp(url);
 });
 $("#copyBtn").addEventListener("click",async()=>{
   try{ await navigator.clipboard.writeText(lastText); $("#copyBtn").textContent="Copied"; }
