@@ -3,6 +3,8 @@ import express from "express";
 import { catalog, getPhoto } from "../lib/units.js";
 import { quote, offer } from "../lib/pricing.js";
 import { todayISO } from "../lib/dates.js";
+import { createWebsiteBooking } from "../lib/bookings.js";
+import { notifyNewBooking } from "../lib/bot.js";
 
 export const site = express.Router();
 const iso = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,6 +38,25 @@ site.get("/api/quote", async (req, res, next) => {
     res.set("Cache-Control", "no-store");
     res.json({ unit: u.code, ...quote(u, discounts, a, b, req.query.option === "room" ? "room" : "suite") });
   } catch (e) { next(e); }
+});
+
+// POST /api/bookings -> saves a booking request from the website form
+// Spam brake: 20 saved requests per hour per IP (mobile networks share IPs, so keep it generous).
+const recent = new Map(); // ip -> timestamps of saved requests
+site.post("/api/bookings", express.json({ limit: "20kb" }), async (req, res, next) => {
+  try {
+    const ip = req.ip || "?", now = Date.now();
+    const list = (recent.get(ip) || []).filter(t => now - t < 3600e3);
+    if (list.length >= 20) return res.status(429).json({ error: "Too many booking requests from this connection. Please WhatsApp or call us." });
+    if (req.body?.website) return res.status(201).json({ ok: true }); // honeypot: bots fill hidden fields
+    const { booking, available, label } = await createWebsiteBooking(req.body);
+    list.push(now); recent.set(ip, list);
+    notifyNewBooking(booking).catch(e => console.error("Host alert failed", e));
+    res.status(201).json({ ok: true, ref: booking.ref, status: booking.status, available, suite: booking.suite, option: booking.option, label, total: booking.quote?.total ?? null });
+  } catch (e) {
+    if (e.status === 400) return res.status(400).json({ error: e.message });
+    next(e);
+  }
 });
 
 // GET /media/:id -> photo bytes (ids never change content, so cache for a year)

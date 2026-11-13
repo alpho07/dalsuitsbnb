@@ -211,6 +211,12 @@ textarea{min-height:88px;resize:vertical}
 .suite-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 @media (max-width:560px){.suite-pick{grid-template-columns:repeat(3,1fr)}}
 .suite-pick{position:relative}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.avail{font-size:.9rem;border-radius:10px;padding:0;display:none}
+.avail.show{display:block;padding:10px 12px}
+.avail.ok{background:rgba(47,122,79,.22);color:#d6f0de}
+.avail.no{background:rgba(201,151,47,.2);color:#f3dfae}
+.avail button{font:600 .8rem var(--body);margin:6px 6px 0 0;padding:4px 10px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
 .opt-pick{grid-template-columns:repeat(2,1fr)!important}
 .suite-pick input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:0;top:0}
 .suite-pick label{display:grid;place-items:center;text-align:center;gap:0;padding:10px 4px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--paper);font-weight:600;line-height:1.15}
@@ -409,7 +415,8 @@ footer a{color:#fff;text-decoration:none}
         <div class="field"><label for="phone">Phone (WhatsApp)</label><input id="phone" type="tel" autocomplete="tel" placeholder="07XX XXX XXX" required><span class="err" id="e-phone"></span></div>
         <div class="field full"><label for="email">Email (optional)</label><input id="email" type="email" autocomplete="email"><span class="err" id="e-email"></span></div>
         <div class="field full"><label for="notes">Anything we should know?</label><textarea id="notes" placeholder="e.g. travelling for a graduation, need early check-in, staying for work"></textarea></div>
-        <div class="field full"><button class="btn btn-brass" type="submit" style="width:100%">Send booking request on WhatsApp</button></div>
+        <div class="hp" aria-hidden="true"><label for="website">Leave this empty</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+        <div class="field full"><button class="btn btn-brass" type="submit" id="submitBtn" style="width:100%">Send booking request on WhatsApp</button><span class="err" id="e-submit"></span></div>
         <div class="confirm" id="confirm" aria-live="polite">
           <div><span class="small">Booking request</span><div class="ref" id="ref"></div></div>
           <p id="confirmMsg">WhatsApp should have opened with your request. Tap send there; your booking is confirmed once we reply. If it didn't open, use the button below.</p>
@@ -429,6 +436,7 @@ footer a{color:#fff;text-decoration:none}
         <div class="sum-row"><span>Guests</span><span id="sGuests">2</span></div>
         <div><span class="small" style="color:#9fb5b1">Estimated total</span><div class="sum-total" id="sTotal">–</div></div>
         <p class="small" style="color:#9fb5b1" id="sNote"></p>
+        <div class="avail" id="sAvail" aria-live="polite"></div>
       </aside>
     </div>
   </div>
@@ -812,10 +820,44 @@ function syncOptions(){
     $("#e-option").textContent = "1 bedroom fits up to "+(ref.roomSleeps||2)+" guests, so it's the whole suite for "+g+".";
   } else $("#e-option").textContent = "";
 }
-let quoteSeq = 0, lastQuote = null;
+let quoteSeq = 0, lastQuote = null, availSeq = 0, avail = null;
+function showAvail(){
+  const el=$("#sAvail"), s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
+  if(!availBlocks()) $("#e-submit").textContent = "";
+  el.className="avail"; el.innerHTML="";
+  if(!avail || avail.key !== a+"|"+b+"|"+$("#guests").value) return;
+  const free = avail.free;
+  if(s){
+    if(free.includes(s.id)){ el.className="avail show ok"; el.textContent = unitName(s)+" is free for these dates."; return; }
+    el.className="avail show no";
+    el.innerHTML = esc(unitName(s))+" is already booked for these dates."+(free.length ? "<br>Free: "+free.map(id=>`<button type="button" data-switch="${esc(id)}">Suite ${esc(id)}</button>`).join("") : " Please try other dates.");
+  } else {
+    el.className = "avail show "+(free.length ? "ok" : "no");
+    el.textContent = free.length ? free.length+" suite"+(free.length>1?"s are":" is")+" free for these dates." : "We're fully booked for these dates. Please try other dates or call us.";
+  }
+}
+function checkAvail(){
+  const a=$("#checkin").value, b=$("#checkout").value, g=$("#guests").value;
+  if(!CONFIG.live || !a || !b || b<=a){ avail=null; showAvail(); return; }
+  const key=a+"|"+b+"|"+g;
+  if(avail && avail.key===key){ showAvail(); return; }
+  const seq=++availSeq;
+  fetch(`/api/availability?in=${a}&out=${b}&guests=${g}`).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j || seq!==availSeq) return;
+    avail={key, free:j.available||[]}; showAvail();
+  }).catch(()=>{});
+}
+function availBlocks(){
+  const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
+  if(!avail || avail.key !== a+"|"+b+"|"+$("#guests").value) return "";
+  if(s && !avail.free.includes(s.id)) return unitName(s)+" is booked for these dates. Pick a free suite or other dates.";
+  if(!s && !avail.free.length) return "We're fully booked for these dates. Please choose other dates.";
+  return "";
+}
 function updateSummary(){
   const s=chosenSuite(), a=$("#checkin").value, b=$("#checkout").value;
   syncOptions();
+  checkAvail();
   const opt = chosenOption();
   $("#sSuite").textContent = (s ? unitName(s) : "Any available suite")+" · "+optionLabel(s, opt);
   $("#sGuests").textContent = $("#guests").value;
@@ -844,6 +886,7 @@ function updateSummary(){
 $("#checkin").addEventListener("change",()=>{ const a=$("#checkin").value; if(a){ $("#checkout").min=addDays(a,1); if(!$("#checkout").value || $("#checkout").value<=a) $("#checkout").value=addDays(a,1);} updateSummary(); });
 ["checkout","guests"].forEach(id=>$("#"+id).addEventListener("change",updateSummary));
 pick.addEventListener("change",updateSummary);
+$("#sAvail").addEventListener("click",e=>{ const b=e.target.closest("[data-switch]"); if(!b) return; const r=document.getElementById("pick-"+b.dataset.switch); if(r){ r.checked=true; updateSummary(); } });
 $("#optionField").addEventListener("change",()=>{ if(chosenOption()==="room"){ const s=chosenSuite()||CONFIG.suites.find(x=>x.roomRate)||{}; if(Number($("#guests").value)>(s.roomSleeps||2)) $("#guests").value=String(s.roomSleeps||2); } updateSummary(); });
 
 function validate(){
@@ -856,6 +899,7 @@ function validate(){
   set("phone", !/^(\+?254|0)?[17]\d{8}$/.test(ph) ? "Enter a valid Kenyan number, e.g. 0712 345 678." : "");
   const em=$("#email").value.trim();
   set("email", em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) ? "Check the email address, or leave it blank." : "");
+  set("submit", availBlocks());
   const so = chosenSuite() || CONFIG.suites.find(x=>x.roomRate) || {};
   if(chosenOption()==="room" && Number($("#guests").value) > (so.roomSleeps||2)) set("option", "1 bedroom fits up to "+(so.roomSleeps||2)+" guests. Choose the whole suite.");
   return ok;
@@ -890,6 +934,26 @@ function buildMessage(ref){
     "Please confirm availability. Thank you!"
   ].filter(line => line !== null).join("\n");
 }
+// Saves the request in our system at the same time WhatsApp opens, so it isn't lost
+// if the guest never presses send. The confirmation panel shows the outcome.
+function saveBooking(ref){
+  if(!CONFIG.live) return;
+  const s=chosenSuite();
+  const body={ ref, suite: s ? s.id : "any", option: chosenOption(), in: $("#checkin").value, out: $("#checkout").value,
+    guests: Number($("#guests").value), arrival: $("#arrival").value, name: $("#name").value.trim(), phone: $("#phone").value.trim(),
+    email: $("#email").value.trim(), notes: $("#notes").value.trim(), website: $("#website").value };
+  $("#confirmMsg").textContent = "Saving your request…";
+  fetch("/api/bookings",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), keepalive:true })
+    .then(r=>r.json().then(j=>({ok:r.ok, j})))
+    .then(({ok, j})=>{
+      if(!ok) throw new Error(j.error||"save failed");
+      if(j.ref && j.ref!==ref) $("#ref").textContent = j.ref;
+      $("#confirmMsg").textContent = j.status==="unavailable"
+        ? "We've saved your request, but that suite was just booked by someone else for these dates. We'll call you with other options; you can still send the WhatsApp message."
+        : "Saved. We're holding the suite for you while we confirm. WhatsApp should have opened with your request: tap send there. If it didn't open, use the button below.";
+    })
+    .catch(()=>{ $("#confirmMsg").textContent = "We couldn't save your request online just now, so please make sure you send the WhatsApp message (or call us). If WhatsApp didn't open, use the button below."; });
+}
 function openWhatsApp(url){
   // Open straight away while the tap still counts as a user action (popup blockers allow it).
   const w = window.open(url, "_blank");
@@ -911,6 +975,7 @@ $("#bookForm").addEventListener("submit",e=>{
   $("#confirm").classList.add("show");
   $("#confirm").scrollIntoView({block:"nearest"});
   openWhatsApp(url);
+  saveBooking(ref);
 });
 $("#copyBtn").addEventListener("click",async()=>{
   try{ await navigator.clipboard.writeText(lastText); $("#copyBtn").textContent="Copied"; }

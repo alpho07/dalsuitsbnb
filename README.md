@@ -33,6 +33,20 @@ Open `https://dalsuitsbnb.com/admin` and sign in with `ADMIN_PASSWORD`.
 The website and the WhatsApp bot read units, prices and offers from the database, so changes show within a minute.
 On first run the database is filled with Suites 110, 123, 115 and 117: each has 2 bedrooms and can be booked as 1 bedroom (KES 2,500, 2 guests) or the whole suite (KES 5,000, 4 guests). A 1-bedroom booking keeps the suite private. Databases from an earlier version are upgraded automatically on start (or run `database/migrations/` by hand).
 
+## Website bookings
+
+When a guest submits the booking form, the request is saved in `dal_bookings` (source `website`)
+at the same moment WhatsApp opens with the message, so it isn't lost if they never press send.
+
+- The form checks availability as dates are chosen and won't send a request for a booked suite.
+- A free suite is held as `pending` for 24 hours, like a WhatsApp request; confirm or decline with
+  `CONFIRM <ref>` / `DECLINE <ref>` on WhatsApp. If someone else took the suite in the meantime the
+  request is still saved as `unavailable` so you can call the guest.
+- The price at the time of the request (with any offer) is stored with the booking.
+- New requests appear under Bookings in `/admin`, and host numbers get a WhatsApp alert once the bot is connected.
+- If the guest also sends the WhatsApp message, the bot recognises the reference and doesn't create a duplicate.
+- `POST /api/bookings` has a spam honeypot and allows 20 saved requests per hour per connection.
+
 ## Editing
 
 - Units, photos, prices and offers: the admin dashboard, no code change needed.
